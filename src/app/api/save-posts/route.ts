@@ -9,6 +9,7 @@ interface TranscriptRequest {
     userId: string;
     title: string;
     content: string;
+    likes: number;
 }
 
 export async function POST(request: Request) {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
 
     const dynamoDbDocClient = DynamoDBDocumentClient.from(dynamoDbClient);
 
-    const { title, content, userId }: TranscriptRequest = await request.json();
+    const { title, content, userId, likes }: TranscriptRequest = await request.json();
     const id = uuidv4();
     try {
         await dynamoDbDocClient.send(new PutCommand({
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
                 Title: title,
                 Content: content,
                 UserId: userId,
+                Likes: likes,
                 CreatedAt: new Date().toISOString(),
             }
         }));
