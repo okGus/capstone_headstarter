@@ -1,9 +1,9 @@
-// src/app/api/posts/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { revalidatePath } from "next/cache";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     const client = new DynamoDBClient({
         region: process.env.AWS_REGION,
         credentials: {
@@ -26,6 +26,8 @@ export async function GET() {
             return dateB.getTime() - dateA.getTime();
         });
 
+        const path = request.nextUrl.searchParams.get('path') || '/';
+        revalidatePath(path);
         return NextResponse.json({ items });
     } catch (error) {
         console.error(error);
