@@ -1,12 +1,42 @@
+'use client';
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { JSX, SVGProps } from "react"
+import { FormEvent, JSX, SVGProps, useState } from "react"
 
 export default function LandingPage() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleSubmitWaitlist = async (e: FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email }),
+      });
+
+      const data = await res.json();
+
+      setMessage(data.message || 'Something went wrong.');
+
+    } catch (error) {
+      setMessage('Something went wrong.');
+    }
+    
+    // Clear fields
+    setName('');
+    setEmail('');
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center">
@@ -140,10 +170,11 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="w-full max-w-sm space-y-2">
-                <form className="flex flex-col space-y-2">
-                  <Input placeholder="Your Name" type="text" />
-                  <Input placeholder="Your Email" type="email" />
+                <form onSubmit={handleSubmitWaitlist} className="flex flex-col space-y-2">
+                  <Input placeholder="Your Name" type="text" value={name} onChange={(e) => setName(e.target.value)}/>
+                  <Input placeholder="Your Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}/>
                   <Button type="submit">Join Waitlist</Button>
+                  {message && <p>{message}</p>}
                 </form>
                 <p className="text-xs text-gray-500">
                   We respect your privacy and will never share your information.
