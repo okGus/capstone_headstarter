@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     const { name, email } = await request.json();
 
     if (!name || !email) {
-        return NextResponse.json({ message: 'Name and Email are requred.' }, { status: 400 });
+        return NextResponse.json({ message: 'Name and Email are required.' }, { status: 400 });
     }
 
     const dynamoDbDocClient = DynamoDBDocumentClient.from(dynamoDbClient);
