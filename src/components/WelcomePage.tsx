@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { UserButton, useUser } from '@clerk/nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import getStripe from '@/lib/get-stripejs';
 
 type Post = {
     PostPK: string;
@@ -36,6 +37,7 @@ export default function WelcomePage() {
     const [fullname, setFullname] = useState('');
     // const [posts, setPosts] = useState<Post[]>([]);
     const [newProject, setNewProject] = useState({ title: '', description: '', link: '' })
+    const [customAmount, setCustomAmount] = useState<string>('');
 
     const queryClient = useQueryClient();
 
@@ -66,7 +68,7 @@ export default function WelcomePage() {
     });
 
     const likePostMutation = useMutation({
-        mutationFn: (postId: string) => 
+        mutationFn: (postId: string) =>
             fetch('/api/like-post', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -105,6 +107,46 @@ export default function WelcomePage() {
         likePostMutation.mutate(postId);
     };
 
+    const handleDonate = async (amount: number) => {
+        console.log(`Initiating donation of $${amount}`)
+
+        const response = await fetch('/api/checkout-session', {
+            method: 'POST',
+            headers: {
+                'content-Type': 'application/json',
+            },
+            body: JSON.stringify({ amount }),
+        });
+
+        const checkoutSession = await response.json();
+        if (!response.ok) {
+            throw new Error(checkoutSession.message || 'An error occured during checkout');
+        }
+
+        const stripe = await getStripe();
+        if (!stripe) {
+            throw new Error('Failed to load Stripe');
+        }
+
+        const result = await stripe?.redirectToCheckout({
+            sessionId: checkoutSession.sessionId,
+        });
+
+        if (result.error) {
+            throw new Error(result.error.message);
+        }
+
+    };
+
+    const handleCustomDonate = () => {
+        const amount = parseFloat(customAmount);
+        if (!isNaN(amount) && amount > 0) {
+            handleDonate(amount);
+        } else {
+            console.error('Invalid amount');
+        }
+    };
+
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>An error occurred: {(error as Error).message}</div>;
 
@@ -122,6 +164,7 @@ export default function WelcomePage() {
             <main className="flex-1 py-6 px-4 md:px-6">
                 <div className="max-w-4xl mx-auto space-y-8">
                     <h1 className="text-3xl font-bold">Welcome back, {fullname}!</h1>
+
                     <Tabs defaultValue="create" className="w-full">
                         <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="create">Create Project Post</TabsTrigger>
@@ -196,22 +239,53 @@ export default function WelcomePage() {
                                                     <Button variant="ghost" size="icon" onClick={() => likePost(project.PostPK)} >
                                                         <HeartIcon className="h-4 w-4" />
                                                     </Button>
-                                                <span>{project.Likes} likes</span>
-                                            </div>
-                                        </CardFooter>
+                                                    <span>{project.Likes} likes</span>
+                                                </div>
+                                            </CardFooter>
                                         </Card>
                                     ))}
+                                </div>
+                            </ScrollArea>
+                        </TabsContent>
+                    </Tabs>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Support DevConnect</CardTitle>
+                            <CardDescription>Your donation helps us maintain and improve the platform</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex flex-wrap gap-4">
+                                {[5, 10, 20, 50, 100].map((amount) => (
+                                    <Button key={amount} variant="outline" onClick={() => handleDonate(amount)}>
+                                        Donate ${amount}
+                                    </Button>
+                                ))}
+                                <div className="flex items-center space-x-2">
+                                    <Input
+                                        type="number"
+                                        placeholder="Custom amount"
+                                        className="w-32"
+                                        min="1"
+                                        step="1"
+                                        value={customAmount}
+                                        onChange={(e) => setCustomAmount(e.target.value)}
+                                    />
+                                    <Button onClick={handleCustomDonate}>
+                                        Donate
+                                    </Button>
+                                </div>
                             </div>
-                        </ScrollArea>
-                    </TabsContent>
-                </Tabs>
-        </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
             </main >
-        <footer className="border-t py-4 px-4 md:px-6">
-            <div className="max-w-4xl mx-auto text-center text-sm text-gray-500">
-                © 2023 DevConnect. All rights reserved.
-            </div>
-        </footer>
+            <footer className="border-t py-4 px-4 md:px-6">
+                <div className="max-w-4xl mx-auto text-center text-sm text-gray-500">
+                    © 2023 DevConnect. All rights reserved.
+                </div>
+            </footer>
         </div >
     )
 }
