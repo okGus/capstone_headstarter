@@ -4,6 +4,7 @@ import { useUser, UserButton } from "@clerk/nextjs";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormEvent, JSX, SVGProps, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Textarea } from "@/components/ui/textarea";
 import {
     Card,
     CardContent,
@@ -16,6 +17,13 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 
+type Comment = {
+    CommentId: string;
+    UserId: string;
+    UserName: string;
+    Content: string;
+    CreatedAt: string;
+  };
 
 type Post = {
     PostPK: string;
@@ -25,6 +33,7 @@ type Post = {
     Link: string;
     Likes: number;
     CreatedAt: string; // Assuming it's an ISO date string
+    Comments?: Comment[];
 };
 
 const fetchUserPosts = async (userId: string): Promise<Post[]> => {
@@ -39,8 +48,49 @@ const fetchUserPosts = async (userId: string): Promise<Post[]> => {
 
 export default function MyPostsPage() {
     const { user } = useUser();
+    const [newComment, setNewComment] = useState("");
+    const [commentingOn, setCommentingOn] = useState<string | null>(null);
+    const [fullname, setFullname] = useState("");
 
     const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!user || !user.fullName) {
+          return;
+        }
+        setFullname(user.fullName);
+      }, [user]);
+
+    const addCommentMutation = useMutation({
+        mutationFn: (commentData: {
+          postId: string;
+          userId: string;
+          userName: string;
+          content: string;
+        }) =>
+          fetch("/api/add-comment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(commentData),
+          }),
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+          queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+          setNewComment("");
+          setCommentingOn(null);
+        },
+      });
+
+      const handleCommentSubmit = (postId: string) => {
+        if (!user || !newComment.trim()) return;
+    
+        addCommentMutation.mutate({
+          postId,
+          userId: user.id,
+          userName: fullname,
+          content: newComment.trim(),
+        });
+      };
 
     const likePostMutation = useMutation({
         mutationFn: (postId: string) =>
@@ -121,6 +171,44 @@ export default function MyPostsPage() {
                                             >
                                                 View Project
                                             </a>
+                                            {project.Comments && project.Comments.length > 0 && (
+                                            <div className="mt-4">
+                                            <h4 className="font-semibold mb-2">Comments:</h4>
+                                            {project.Comments.map((comment) => (
+                                                <div
+                                                key={comment.CommentId}
+                                                className="bg-gray-100 p-2 rounded mb-2"
+                                                >
+                                                <p className="text-sm font-semibold">
+                                                    {comment.UserName}
+                                                </p>
+                                                <p className="text-sm">{comment.Content}</p>
+                                                <p className="text-xs text-gray-500">
+                                                    {new Date(
+                                                    comment.CreatedAt
+                                                    ).toLocaleString()}
+                                                </p>
+                                                </div>
+                                            ))}
+                                            </div>
+                                        )}
+                                        {commentingOn === project.PostPK && (
+                                            <div className="mt-4">
+                                            <Textarea
+                                                value={newComment}
+                                                onChange={(e) => setNewComment(e.target.value)}
+                                                placeholder="Write a comment..."
+                                                className="mb-2"
+                                            />
+                                            <Button
+                                                onClick={() =>
+                                                handleCommentSubmit(project.PostPK)
+                                                }
+                                            >
+                                                Submit Comment
+                                            </Button>
+                                            </div>
+                                        )}
                                         </CardContent>
                                         <CardFooter className="flex justify-between">
                                             <Button
@@ -138,6 +226,20 @@ export default function MyPostsPage() {
                                                     <HeartIcon className="h-4 w-4" />
                                                 </Button>
                                                 <span>{project.Likes} likes</span>
+                                                <Button
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        setCommentingOn(
+                                                        commentingOn === project.PostPK
+                                                            ? null
+                                                            : project.PostPK
+                                                        )
+                                                    }
+                                                    >
+                                                    {commentingOn === project.PostPK
+                                                        ? "Cancel"
+                                                        : "Comment"}
+                                                </Button>
                                             </div>
                                         </CardFooter>
                                     </Card>
