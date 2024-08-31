@@ -21,6 +21,13 @@ import getStripe from "@/lib/get-stripejs";
 import { useRouter } from "next/navigation";
 import { Router } from "lucide-react";
 
+type Comment = {
+  CommentId: string;
+  UserId: string;
+  UserName: string;
+  Content: string;
+  CreatedAt: string;
+};
 type Post = {
   PostPK: string;
   Author: string;
@@ -28,7 +35,8 @@ type Post = {
   Description: string;
   Link: string;
   Likes: number;
-  CreatedAt: string; // Assuming it's an ISO date string
+  CreatedAt: string;
+  Comments?: Comment[];
 };
 
 const fetchPosts = async (): Promise<Post[]> => {
@@ -61,7 +69,10 @@ export default function WelcomePage() {
     link: "",
   });
   const [customAmount, setCustomAmount] = useState<string>("");
-  // const [viewingMyProjects, setViewingMyProjects] = useState(false);
+
+  const [viewingMyProjects, setViewingMyProjects] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [commentingOn, setCommentingOn] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -93,6 +104,26 @@ export default function WelcomePage() {
   //   queryFn: () => fetchUserPosts(user?.id || ""),
   //   enabled: !!user?.id,
   // });
+
+  const addCommentMutation = useMutation({
+    mutationFn: (commentData: {
+      postId: string;
+      userId: string;
+      userName: string;
+      content: string;
+    }) =>
+      fetch("/api/add-comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(commentData),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+      setNewComment("");
+      setCommentingOn(null);
+    },
+  });
 
   const createPostMutation = useMutation({
     mutationFn: (newPost: any) =>
@@ -126,6 +157,17 @@ export default function WelcomePage() {
   }) => {
     const { name, value } = e.target;
     setNewProject((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCommentSubmit = (postId: string) => {
+    if (!user || !newComment.trim()) return;
+
+    addCommentMutation.mutate({
+      postId,
+      userId: user.id,
+      userName: fullname,
+      content: newComment.trim(),
+    });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -300,6 +342,44 @@ export default function WelcomePage() {
                           >
                             View Project
                           </a>
+                          {project.Comments && project.Comments.length > 0 && (
+                            <div className="mt-4">
+                              <h4 className="font-semibold mb-2">Comments:</h4>
+                              {project.Comments.map((comment) => (
+                                <div
+                                  key={comment.CommentId}
+                                  className="bg-gray-100 p-2 rounded mb-2"
+                                >
+                                  <p className="text-sm font-semibold">
+                                    {comment.UserName}
+                                  </p>
+                                  <p className="text-sm">{comment.Content}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(
+                                      comment.CreatedAt
+                                    ).toLocaleString()}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {commentingOn === project.PostPK && (
+                            <div className="mt-4">
+                              <Textarea
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Write a comment..."
+                                className="mb-2"
+                              />
+                              <Button
+                                onClick={() =>
+                                  handleCommentSubmit(project.PostPK)
+                                }
+                              >
+                                Submit Comment
+                              </Button>
+                            </div>
+                          )}
                         </CardContent>
                         <CardFooter className="flex justify-between">
                           <Button
@@ -317,6 +397,20 @@ export default function WelcomePage() {
                               <HeartIcon className="h-4 w-4" />
                             </Button>
                             <span>{project.Likes} likes</span>
+                            <Button
+                              variant="ghost"
+                              onClick={() =>
+                                setCommentingOn(
+                                  commentingOn === project.PostPK
+                                    ? null
+                                    : project.PostPK
+                                )
+                              }
+                            >
+                              {commentingOn === project.PostPK
+                                ? "Cancel"
+                                : "Comment"}
+                            </Button>
                           </div>
                         </CardFooter>
                       </Card>
