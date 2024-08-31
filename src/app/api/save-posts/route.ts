@@ -4,12 +4,12 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
 interface TranscriptRequest {
-    id: string;
-    transcript: string;
-    userId: string;
-    title: string;
-    content: string;
+    author: string;
     likes: number;
+    title: string;
+    description: string;
+    link: string;
+    userID: string;
 }
 
 export async function POST(request: Request) {
@@ -24,22 +24,25 @@ export async function POST(request: Request) {
 
     const dynamoDbDocClient = DynamoDBDocumentClient.from(dynamoDbClient);
 
-    const { title, content, userId, likes }: TranscriptRequest = await request.json();
+    const { title, description, userID, likes, author, link }: TranscriptRequest = await request.json();
     const id = uuidv4();
+
     try {
         await dynamoDbDocClient.send(new PutCommand({
             TableName: 'Posts',
             Item: {
                 PostPK: `POSTS#${id}`,
                 Title: title,
-                Content: content,
-                UserId: userId,
+                Description: description,
+                UserId: userID,
                 Likes: likes,
+                Author: author,
+                Link: link,
                 CreatedAt: new Date().toISOString(),
             }
         }));
 
-        return NextResponse.json({ message: 'Transcript saved successfully', title: title, content: content, userId: userId, id: id }, { status: 201 });
+        return NextResponse.json({ message: 'Transcript saved successfully', }, { status: 201 });
     } catch (error) {
         console.error(error);
         return NextResponse.json({ error: 'Failed to save transcript' }, { status: 500 });
