@@ -1,232 +1,236 @@
-'use client'
-// WelcomePage.tsx
-import React from 'react';
-import { Box, Button, Modal, Typography, TextField, Card, CardContent, CardActions } from '@mui/material';
-import { useUser } from "@clerk/nextjs";
-import { useEffect } from 'react';
+'use client';
+import { FormEvent, JSX, SVGProps, useEffect, useState } from 'react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { UserButton, useUser } from '@clerk/nextjs';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-const WelcomePage: React.FC = () => {
-  const [openPostCreation, setOpenPostCreation] = React.useState(false);
-  const [postTitleText, setPostTitleText] = React.useState("");
-  const [postContentText, setPostContentText] = React.useState("");
-  const [posts, setPosts] = React.useState<any[]>([]);
-  const { user } = useUser();
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const response = await fetch("/api/get-posts");
-      if (response.ok) {
-        const data = await response.json();
-        const transformedPosts = data.items.map((post: any) => ({
-          Title: post.Title,
-          Content: post.Content,
-          Likes: parseInt(post.Likes, 10), // Convert from { N: 'number' } to number
-          CreatedAt: post.CreatedAt,
-          PostPK: post.PostPK,
-        }));
-        setPosts(transformedPosts);
-      }
-    };
-    fetchPosts();
-  }, []);
-
-  const createPost = () => {
-    setOpenPostCreation(true);
-  }
-
-  const likePost = async (postId: string) => {
-    const response = await fetch(
-      "/api/like-post",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ postId }),
-      }
-    );
-    if (response.ok) {
-      // Re-fetch posts after successfully liking a post
-      const fetchPosts = async () => {
-        const response = await fetch("/api/get-posts");
-        if (response.ok) {
-          const data = await response.json();
-          const transformedPosts = data.items.map((post: any) => ({
-            Title: post.Title,
-            Content: post.Content,
-            Likes: parseInt(post.Likes, 10), // Convert from { N: 'number' } to number
-            CreatedAt: post.CreatedAt,
-            PostPK: post.PostPK,
-          }));
-          setPosts(transformedPosts);
-        }
-      };
-      fetchPosts();
-    } else {
-      alert("Failed to like post");
-    }
-  };
-
-  const handlePostCreationClose = async () => {
-    setOpenPostCreation(false);
-
-    if (postTitleText.trim() === "" || postContentText.trim() === "") {
-      return;
-    }
-    const response = await fetch(
-      "/api/save-posts",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title: postTitleText, content: postContentText, userId: user?.id, likes: 0 }),
-      }
-    );
-    if (response.ok) {
-      // Clear the input fields
-      setPostTitleText("");
-      setPostContentText("");
-  
-      // Re-fetch posts after successfully creating a new post
-      const fetchPosts = async () => {
-        const response = await fetch("/api/get-posts");
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data.items)
-          const transformedPosts = data.items.map((post: any) => ({
-            Title: post.Title,
-            Content: post.Content,
-            Likes: parseInt(post.Likes, 10), // Convert from { N: 'number' } to number
-            CreatedAt: post.CreatedAt,
-            PostPK: post.PostPK,
-          }));
-          console.log(transformedPosts)
-          setPosts(transformedPosts);
-        }
-      };
-      fetchPosts();
-      console.log(posts)
-
-    } else {
-      alert("Failed to create post");
-    }
-  };
-
-  return (
-    <Box
-      sx={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        backgroundColor: '#f0f4f8',
-        padding: 4,
-      }}
-    >
-      {/* Display posts as cards */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: 2,
-          width: '100%',
-        }}
-      >
-        {posts.map((post, index) => (
-          <Card key={index} sx={{ maxWidth: 345 }}>
-            <CardContent>
-              <Typography variant="h6" component="h3" gutterBottom>
-                {post.Title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {post.Content}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Likes: {post.Likes}
-              </Typography>
-            </CardContent>
-            <CardActions>
-              <Typography variant="caption" color="text.secondary">
-                Created at: {new Date(post.CreatedAt).toLocaleString()}
-              </Typography>
-              <Button size="small" onClick={() => likePost(post.PostPK)}>Like</Button>
-            </CardActions>
-          </Card>
-        ))}
-      </Box>
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={createPost}
-        sx={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-        }}
-      >
-        Create Post
-      </Button>
-      <Modal
-        open={openPostCreation}
-        onClose={handlePostCreationClose}
-        aria-labelledby="create-post-modal-title"
-        aria-describedby="create-post-modal-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-            outline: 'none',
-          }}
-        >
-          <Typography id="create-post-modal-title" variant="h6" component="h2" gutterBottom style={{color: 'black'}}>
-            Create Post
-          </Typography>
-          <Box
-            component="form"
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
-            }}
-            noValidate
-            autoComplete="off"
-          >
-            <TextField
-              fullWidth
-              label="Title"
-              variant="outlined"
-              value={postTitleText}
-              onChange={(e) => setPostTitleText(e.target.value)}
-              required
-            />
-            <TextField
-              fullWidth
-              label="Content"
-              variant="outlined"
-              value={postContentText}
-              onChange={(e) => setPostContentText(e.target.value)}
-              required
-              multiline
-              rows={4}
-            />
-            <Button variant="contained" color="primary" onClick={handlePostCreationClose}>
-              Create
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-    </Box>
-  );
+type Post = {
+    PostPK: string;
+    Author: string;
+    Title: string;
+    Description: string;
+    Link: string;
+    Likes: number;
+    CreatedAt: string; // Assuming it's an ISO date string
 };
 
-export default WelcomePage;
+const fetchPosts = async (): Promise<Post[]> => {
+    const response = await fetch('api/get-posts');
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+    return data.items;
+};
+
+export default function WelcomePage() {
+    const { user } = useUser();
+    const [fullname, setFullname] = useState('');
+    // const [posts, setPosts] = useState<Post[]>([]);
+    const [newProject, setNewProject] = useState({ title: '', description: '', link: '' })
+
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!user || !user.fullName) {
+            return;
+        }
+        setFullname(user.fullName);
+    }, [user]);
+
+    const { data: posts, isLoading, error } = useQuery<Post[]>({
+        queryKey: ['posts'],
+        queryFn: fetchPosts,
+        refetchInterval: 5000, // 5 seconds
+    });
+
+    const createPostMutation = useMutation({
+        mutationFn: (newPost: any) =>
+            fetch('/api/save-posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newPost)
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
+            setNewProject({ title: '', description: '', link: '' });
+        },
+    });
+
+    const likePostMutation = useMutation({
+        mutationFn: (postId: string) => 
+            fetch('/api/like-post', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId }),
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
+        },
+    });
+
+    const handleInputChange = (e: { target: { name: string; value: string; }; }) => {
+        const { name, value } = e.target
+        setNewProject(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault()
+
+        if (!user) {
+            console.error('User not logged in');
+            return;
+        }
+
+        // Create project post
+        const newProjectPost = {
+            userID: user.id,
+            ...newProject,
+            author: fullname,
+            likes: 0
+        }
+
+        createPostMutation.mutate(newProjectPost);
+    }
+
+    const likePost = async (postId: string) => {
+        likePostMutation.mutate(postId);
+    };
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>An error occurred: {(error as Error).message}</div>;
+
+    return (
+        <div className="flex flex-col min-h-screen">
+            <header className="px-4 lg:px-6 h-14 flex items-center border-b">
+                <span className="font-semibold text-lg">DevConnect</span>
+                <nav className="ml-auto flex gap-4 sm:gap-6">
+                    <Button variant="ghost">Home</Button>
+                    <Button variant="ghost">My Projects</Button>
+                    <Button variant="ghost">Notifications</Button>
+                </nav>
+                <UserButton />
+            </header>
+            <main className="flex-1 py-6 px-4 md:px-6">
+                <div className="max-w-4xl mx-auto space-y-8">
+                    <h1 className="text-3xl font-bold">Welcome back, {fullname}!</h1>
+                    <Tabs defaultValue="create" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="create">Create Project Post</TabsTrigger>
+                            <TabsTrigger value="view">View Project Posts</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="create">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Create a New Project Post</CardTitle>
+                                    <CardDescription>Share your latest work with the community</CardDescription>
+                                </CardHeader>
+                                <form onSubmit={handleSubmit}>
+                                    <CardContent className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="project-title">Project Title</Label>
+                                            <Input
+                                                id="project-title"
+                                                name="title"
+                                                value={newProject.title}
+                                                onChange={handleInputChange}
+                                                placeholder="Enter your project title"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="project-description">Project Description</Label>
+                                            <Textarea
+                                                id="project-description"
+                                                name="description"
+                                                value={newProject.description}
+                                                onChange={handleInputChange}
+                                                placeholder="Describe your project"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="project-link">Project Link</Label>
+                                            <Input
+                                                id="project-link"
+                                                name="link"
+                                                value={newProject.link}
+                                                onChange={handleInputChange}
+                                                placeholder="https://your-project-link.com"
+                                                required
+                                            />
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter>
+                                        <Button type="submit">Create Project Post</Button>
+                                    </CardFooter>
+                                </form>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="view">
+                            <ScrollArea className="h-[600px] w-full rounded-md border p-4">
+                                <div className="space-y-8">
+                                    {posts && posts.map((project) => (
+                                        <Card key={project.PostPK}>
+                                            <CardHeader>
+                                                <CardTitle>{project.Title}</CardTitle>
+                                                <CardDescription>By {project.Author}</CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="mb-2">{project.Description}</p>
+                                                <a href={project.Link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                                    View Project
+                                                </a>
+                                            </CardContent>
+                                            <CardFooter className="flex justify-between">
+                                                <Button variant="outline" onClick={() => window.open(project.Link, '_blank')}>Visit Site</Button>
+                                                <div className="flex items-center space-x-2">
+                                                    <Button variant="ghost" size="icon" onClick={() => likePost(project.PostPK)} >
+                                                        <HeartIcon className="h-4 w-4" />
+                                                    </Button>
+                                                <span>{project.Likes} likes</span>
+                                            </div>
+                                        </CardFooter>
+                                        </Card>
+                                    ))}
+                            </div>
+                        </ScrollArea>
+                    </TabsContent>
+                </Tabs>
+        </div>
+            </main >
+        <footer className="border-t py-4 px-4 md:px-6">
+            <div className="max-w-4xl mx-auto text-center text-sm text-gray-500">
+                © 2023 DevConnect. All rights reserved.
+            </div>
+        </footer>
+        </div >
+    )
+}
+
+function HeartIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
+    )
+}
