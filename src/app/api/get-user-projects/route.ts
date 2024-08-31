@@ -1,45 +1,53 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
-
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
-
-const dynamoDbDocClient = DynamoDBDocumentClient.from(client);
+import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get('userId');
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
 
   if (!userId) {
-    return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    return NextResponse.json({ error: 'UserId is required' }, { status: 400 });
   }
+
+  const client = new DynamoDBClient({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
+  });
+
+  const docClient = DynamoDBDocumentClient.from(client);
 
   try {
     const command = new ScanCommand({
       TableName: 'Posts',
       FilterExpression: 'UserId = :userId',
       ExpressionAttributeValues: {
-        ':userId': userId,
-      },
+        ':userId': userId
+      }
     });
 
-    const result = await dynamoDbDocClient.send(command);
+    const result = await docClient.send(command);
     const items = result.Items || [];
 
+    // Sort posts by creation date
     items.sort((a, b) => {
       const dateA = new Date(a.CreatedAt);
       const dateB = new Date(b.CreatedAt);
       return dateB.getTime() - dateA.getTime();
     });
 
-    return NextResponse.json({ items });
+    // Ensure Comments field exists and is an array for each post
+    const postsWithComments = items.map(post => ({
+      ...post,
+      Comments: Array.isArray(post.Comments) ? post.Comments : []
+    }));
+
+    return NextResponse.json({ items: postsWithComments });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Failed to retrieve user posts' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to retrieve items' }, { status: 500 });
   }
 }
