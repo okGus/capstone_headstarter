@@ -2,7 +2,14 @@ import { NextResponse } from "next/server";
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId');
+
+  if (!userId) {
+    return NextResponse.json({ error: 'UserId is required' }, { status: 400 });
+  }
+
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION,
     credentials: {
@@ -16,6 +23,10 @@ export async function GET() {
   try {
     const command = new ScanCommand({
       TableName: 'Posts',
+      FilterExpression: 'UserId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId
+      }
     });
 
     const result = await docClient.send(command);
