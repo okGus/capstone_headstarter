@@ -18,6 +18,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import getStripe from "@/lib/get-stripejs";
+import { useRouter } from "next/navigation";
+import { Router } from "lucide-react";
 
 type Comment = {
   CommentId: string;
@@ -47,15 +49,16 @@ const fetchPosts = async (): Promise<Post[]> => {
   return data.items;
 };
 
-const fetchUserPosts = async (userId: string): Promise<Post[]> => {
-  const response = await fetch(`api/get-user-projects?userId=${userId}`);
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
+// const fetchUserPosts = async (userId: string): Promise<Post[]> => {
+//   const response = await fetch(`api/get-user-projects?userId=${userId}`);
+//   if (!response.ok) {
+//     throw new Error("Network response was not ok");
+//   }
 
-  const data = await response.json();
-  return data.items;
-};
+//   const data = await response.json();
+//   return data.items;
+// };
+
 
 export default function WelcomePage() {
   const { user } = useUser();
@@ -66,11 +69,14 @@ export default function WelcomePage() {
     link: "",
   });
   const [customAmount, setCustomAmount] = useState<string>("");
+
   const [viewingMyProjects, setViewingMyProjects] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [commentingOn, setCommentingOn] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+
+  const router = useRouter();
 
   useEffect(() => {
     if (!user || !user.fullName) {
@@ -89,15 +95,15 @@ export default function WelcomePage() {
     refetchInterval: 5000, // 5 seconds
   });
 
-  const {
-    data: userPosts,
-    isLoading: isLoadingUserPosts,
-    error: userPostsError,
-  } = useQuery<Post[]>({
-    queryKey: ["userPosts", user?.id],
-    queryFn: () => fetchUserPosts(user?.id || ""),
-    enabled: !!user?.id,
-  });
+  // const {
+  //   data: userPosts,
+  //   isLoading: isLoadingUserPosts,
+  //   error: userPostsError,
+  // } = useQuery<Post[]>({
+  //   queryKey: ["userPosts", user?.id],
+  //   queryFn: () => fetchUserPosts(user?.id || ""),
+  //   enabled: !!user?.id,
+  // });
 
   const addCommentMutation = useMutation({
     mutationFn: (commentData: {
@@ -128,7 +134,7 @@ export default function WelcomePage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+      // queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
       setNewProject({ title: "", description: "", link: "" });
     },
   });
@@ -142,7 +148,7 @@ export default function WelcomePage() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+      // queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
     },
   });
 
@@ -228,24 +234,24 @@ export default function WelcomePage() {
     }
   };
 
-  const toggleMyProjects = () => {
-    setViewingMyProjects(!viewingMyProjects);
-  };
+  // const toggleMyProjects = () => {
+  //   setViewingMyProjects(!viewingMyProjects);
+  // };
 
-  const postsToDisplay = viewingMyProjects ? userPosts : allPosts;
-  const isLoading = viewingMyProjects ? isLoadingUserPosts : isLoadingAllPosts;
-  const error = viewingMyProjects ? userPostsError : allPostsError;
+  const postsToDisplay = allPosts;
+  const isLoading = isLoadingAllPosts;
+  const error = allPostsError;
 
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center border-b">
         <span className="font-semibold text-lg">DevConnect</span>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Button variant="ghost" onClick={() => setViewingMyProjects(false)}>
+          <Button variant="ghost" onClick={() => router.push('/')}>
             Home
           </Button>
-          <Button variant="ghost" onClick={toggleMyProjects}>
-            {viewingMyProjects ? "All Projects" : "My Projects"}
+          <Button variant="ghost" onClick={() => router.push('/my-posts')}>
+            {"My Projects"}
           </Button>
           <Button variant="ghost">Notifications</Button>
         </nav>
