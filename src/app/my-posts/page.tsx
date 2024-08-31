@@ -115,7 +115,8 @@ export default function MyPostsPage() {
         enabled: !!user?.id,
     });
 
-    const postsToDisplay = userPosts;
+    // Sort by likes
+    const postsToDisplay = userPosts?.sort((a, b) => b.Likes - a.Likes);
     const isLoading = isLoadingUserPosts;
     const error = userPostsError;
 

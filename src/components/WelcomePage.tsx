@@ -238,7 +238,7 @@ export default function WelcomePage() {
   //   setViewingMyProjects(!viewingMyProjects);
   // };
 
-  const postsToDisplay = allPosts;
+  const postsToDisplay = allPosts?.sort((a, b) => b.Likes - a.Likes);
   const isLoading = isLoadingAllPosts;
   const error = allPostsError;
 
