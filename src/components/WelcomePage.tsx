@@ -60,7 +60,7 @@ export default function WelcomePage() {
     const { data: posts, isLoading, error} = useQuery<Post[]>({
         queryKey: ['posts'],
         queryFn: fetchPosts,
-        refetchInterval: 5000, // 5 seconds
+        // refetchInterval: 5000, // 5 seconds
     });
 
     const createPostMutation = useMutation({

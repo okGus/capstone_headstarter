@@ -74,7 +74,7 @@ export default function MyPostsPage() {
             body: JSON.stringify(commentData),
           }),
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["posts"] });
+        //   queryClient.invalidateQueries({ queryKey: ["posts"] });
           queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
           setNewComment("");
           setCommentingOn(null);
@@ -100,8 +100,8 @@ export default function MyPostsPage() {
                 body: JSON.stringify({ postId }),
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["posts"] });
-            // queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+            // queryClient.invalidateQueries({ queryKey: ["posts"] });
+            queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
         },
     });
 
