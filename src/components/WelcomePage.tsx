@@ -61,6 +61,7 @@ export default function WelcomePage() {
         queryKey: ['posts'],
         queryFn: fetchPosts,
         // refetchInterval: 5000, // 5 seconds
+        refetchOnMount: true,
     });
 
     const createPostMutation = useMutation({
