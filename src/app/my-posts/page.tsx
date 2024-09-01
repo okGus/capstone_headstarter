@@ -16,35 +16,40 @@ import {
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { usePosts } from "@/hooks/usePosts";
 
-type Comment = {
-    CommentId: string;
-    UserId: string;
-    UserName: string;
-    Content: string;
-    CreatedAt: string;
-  };
+// type Comment = {
+//     CommentId: string;
+//     UserId: string;
+//     UserName: string;
+//     Content: string;
+//     CreatedAt: string;
+//   };
 
-type Post = {
-    PostPK: string;
-    Author: string;
-    Title: string;
-    Description: string;
-    Link: string;
-    Likes: number;
-    CreatedAt: string; // Assuming it's an ISO date string
-    Comments?: Comment[];
-};
+// type Post = {
+//     PostPK: string;
+//     Author: string;
+//     Title: string;
+//     Description: string;
+//     Link: string;
+//     Likes: number;
+//     CreatedAt: string; // Assuming it's an ISO date string
+//     Comments?: Comment[];
+// };
 
-const fetchUserPosts = async (userId: string): Promise<Post[]> => {
-    const response = await fetch(`api/get-user-projects?userId=${userId}`);
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
+// Define shared query keys
+// const POSTS_QUERY_KEY = 'posts';
+// const USER_POSTS_QUERY_KEY = 'userPosts';
 
-    const data = await response.json();
-    return data.items;
-};
+// const fetchUserPosts = async (userId: string): Promise<Post[]> => {
+//     const response = await fetch(`api/get-user-projects?userId=${userId}`);
+//     if (!response.ok) {
+//         throw new Error("Network response was not ok");
+//     }
+
+//     const data = await response.json();
+//     return data.items;
+// };
 
 export default function MyPostsPage() {
     const { user } = useUser();
@@ -52,7 +57,9 @@ export default function MyPostsPage() {
     const [commentingOn, setCommentingOn] = useState<string | null>(null);
     const [fullname, setFullname] = useState("");
 
-    const queryClient = useQueryClient();
+    // const queryClient = useQueryClient();
+
+    const { userPosts, isLoading, error, likePost, addComment } = usePosts(user?.id);
 
     useEffect(() => {
         if (!user || !user.fullName) {
@@ -61,68 +68,75 @@ export default function MyPostsPage() {
         setFullname(user.fullName);
       }, [user]);
 
-    const addCommentMutation = useMutation({
-        mutationFn: (commentData: {
-          postId: string;
-          userId: string;
-          userName: string;
-          content: string;
-        }) =>
-          fetch("/api/add-comment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(commentData),
-          }),
-        onSuccess: () => {
-        //   queryClient.invalidateQueries({ queryKey: ["posts"] });
-          queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
-          setNewComment("");
-          setCommentingOn(null);
-        },
-      });
+    // const addCommentMutation = useMutation({
+    //     mutationFn: (commentData: {
+    //       postId: string;
+    //       userId: string;
+    //       userName: string;
+    //       content: string;
+    //     }) =>
+    //       fetch("/api/add-comment", {
+    //         method: "POST",
+    //         headers: { "Content-Type": "application/json" },
+    //         body: JSON.stringify(commentData),
+    //       }),
+    //     onSuccess: () => {
+    //     //   queryClient.invalidateQueries({ queryKey: ["posts"] });
+    //       queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+    //       setNewComment("");
+    //       setCommentingOn(null);
+    //     },
+    //   });
 
       const handleCommentSubmit = (postId: string) => {
         if (!user || !newComment.trim()) return;
     
-        addCommentMutation.mutate({
+        // addCommentMutation.mutate
+        addComment({
           postId,
           userId: user.id,
           userName: fullname,
           content: newComment.trim(),
         });
+
+        setNewComment("");
+        setCommentingOn(null);
       };
 
-    const likePostMutation = useMutation({
-        mutationFn: (postId: string) =>
-            fetch("/api/like-post", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ postId }),
-            }),
-        onSuccess: () => {
-            // queryClient.invalidateQueries({ queryKey: ["posts"] });
-            queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
-        },
-    });
+    // const likePostMutation = useMutation({
+    //     mutationFn: (postId: string) =>
+    //         fetch("/api/like-post", {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({ postId }),
+    //         }),
+    //     onMutate: async (postId) => {
+    //         await queryClient.cancelQueries({ queryKey: [POSTS_QUERY_KEY] });
+    //         await queryClient.cancelQueries({ queryKey: [USER_POSTS_QUERY_KEY, user?.id] });
 
-    const {
-        data: userPosts,
-        isLoading: isLoadingUserPosts,
-        error: userPostsError,
-    } = useQuery<Post[]>({
-        queryKey: ["userPosts", user?.id],
-        queryFn: () => fetchUserPosts(user?.id || ""),
-        enabled: !!user?.id,
-    });
+    //         const previousUserPosts = queryClient.getQueryData([USER_POSTS_QUERY_KEY, user?.id]);
+    //         const previousPosts = queryClient.getQueryData([POSTS_QUERY_KEY]);
+    //     },
+    // });
+
+    // const {
+    //     data: userPosts,
+    //     isLoading: isLoadingUserPosts,
+    //     error: userPostsError,
+    // } = useQuery<Post[]>({
+    //     queryKey: [USER_POSTS_QUERY_KEY, user?.id],
+    //     queryFn: () => fetchUserPosts(user?.id || ""),
+    //     enabled: !!user?.id,
+    // });
 
     // Sort by likes
     const postsToDisplay = userPosts?.sort((a, b) => b.Likes - a.Likes);
-    const isLoading = isLoadingUserPosts;
-    const error = userPostsError;
+    // const isLoading = isLoadingUserPosts;
+    // const error = userPostsError;
 
-    const likePost = async (postId: string) => {
-        likePostMutation.mutate(postId);
-    };
+    // const likePost = async (postId: string) => {
+    //     likePostMutation.mutate(postId);
+    // };
 
     const router = useRouter();
 

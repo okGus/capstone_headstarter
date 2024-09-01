@@ -19,6 +19,7 @@ import { UserButton, useUser } from '@clerk/nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import getStripe from '@/lib/get-stripejs';
 import { useRouter } from 'next/navigation';
+import { usePosts } from '@/hooks/usePosts';
 
 type Post = {
     PostPK: string;
@@ -30,15 +31,18 @@ type Post = {
     CreatedAt: string;
 };
 
-const fetchPosts = async () => {
-    const response = await fetch('api/get-posts');
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
+// Define a shared query key
+// const POSTS_QUERY_KEY = 'posts';
 
-    const data = await response.json();
-    return data.items;
-};
+// const fetchPosts = async (): Promise<Post[]> => {
+//     const response = await fetch('api/get-posts');
+//     if (!response.ok) {
+//         throw new Error('Network response was not ok');
+//     }
+
+//     const data = await response.json();
+//     return data.items;
+// };
 
 export default function WelcomePage() {
     const { user } = useUser();
@@ -50,6 +54,8 @@ export default function WelcomePage() {
 
     const router = useRouter();
 
+    const { posts, isLoading, error, likePost } = usePosts();
+
     useEffect(() => {
         if (!user || !user.fullName) {
             return;
@@ -57,12 +63,12 @@ export default function WelcomePage() {
         setFullname(user.fullName);
     }, [user]);
 
-    const { data: posts, isLoading, error} = useQuery<Post[]>({
-        queryKey: ['posts'],
-        queryFn: fetchPosts,
-        // refetchInterval: 5000, // 5 seconds
-        // refetchOnMount: true,
-    });
+    // const { data: posts, isLoading, error} = useQuery<Post[]>({
+    //     queryKey: [POSTS_QUERY_KEY],
+    //     queryFn: fetchPosts,
+    //     // refetchInterval: 5000, // 5 seconds
+    //     // refetchOnMount: true,
+    // });
 
     const createPostMutation = useMutation({
         mutationFn: (newPost: any) =>
@@ -77,17 +83,35 @@ export default function WelcomePage() {
         },
     });
 
-    const likePostMutation = useMutation({
-        mutationFn: (postId: string) =>
-            fetch('/api/like-post', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ postId }),
-            }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['posts'] });
-        },
-    });
+    // const likePostMutation = useMutation({
+    //     mutationFn: (postId: string) =>
+    //         fetch('/api/like-post', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify({ postId }),
+    //         }),
+    //     onMutate: async (postId) => {
+    //         // Cancle any outgoing refetches
+    //         await queryClient.cancelQueries({ queryKey: [POSTS_QUERY_KEY] });
+
+    //         // Snapshot of the previous value
+    //         const previousPosts = queryClient.getQueryData([POSTS_QUERY_KEY]);
+
+    //         // Optimistically update to the new value
+    //         queryClient.setQueryData([POSTS_QUERY_KEY], (old: Post[] | undefined) =>
+    //             old ? old.map(post => post.PostPK === postId ? {...post, Likes: post.Likes + 1 } : post) : []
+    //         );
+
+    //         // Return a context object with the snapshotted value
+    //         return { previousPosts };
+    //     },
+    //     onError: (err, postId, context) => {
+    //         queryClient.setQueryData([POSTS_QUERY_KEY], context?.previousPosts);
+    //     },
+    //     onSuccess: () => {
+    //         queryClient.invalidateQueries({ queryKey: [POSTS_QUERY_KEY] });
+    //     },
+    // });
 
     const handleInputChange = (e: { target: { name: string; value: string }; }) => {
         const { name, value } = e.target;
@@ -113,9 +137,9 @@ export default function WelcomePage() {
         createPostMutation.mutate(newProjectPost);
     };
 
-    const likePost = async (postId: string) => {
-        likePostMutation.mutate(postId);
-    };
+    // const likePost = async (postId: string) => {
+    //     likePostMutation.mutate(postId);
+    // };
 
     const handleDonate = async (amount: number) => {
         console.log(`Initiating donation of $${amount}`);
