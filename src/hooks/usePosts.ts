@@ -23,11 +23,14 @@ type Post = {
 };
 
 const fetchPosts = async (): Promise<Post[]> => {
+    console.log('Fetching posts'); // Debug log
     const response = await fetch('/api/get-posts');
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
-    return response.json().then(data => data.items);
+    const data = await response.json();
+    console.log('Fetched posts:', data.items); // Debug log
+    return data.items;
 };
 
 const fetchUserPosts = async (userId: string): Promise<Post[]> => {
@@ -63,6 +66,9 @@ export function usePosts(userId?: string) {
                 throw new Error('Failed to like post');
             }
             return response.json();
+        },
+        onSuccess: () => {
+            console.log('Post liked, updating cache'); // Debug log
         },
         onMutate: async (postId) => {
             await queryClient.cancelQueries({ queryKey: [POSTS_QUERY_KEY] });
@@ -144,6 +150,8 @@ export function usePosts(userId?: string) {
                 body: JSON.stringify(newPost),
             }),
         onSuccess: (data, variables) => {
+            console.log('Post created, updating cache'); // Debug log
+
             // Assume the API returns the created post
             const createdPost = data;
 

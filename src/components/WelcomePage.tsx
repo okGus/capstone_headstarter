@@ -63,6 +63,10 @@ export default function WelcomePage() {
         setFullname(user.fullName);
     }, [user]);
 
+    useEffect(() => {
+        console.log('Posts updated:', posts); // Debug log
+    }, [posts]);
+
     // const { data: posts, isLoading, error} = useQuery<Post[]>({
     //     queryKey: [POSTS_QUERY_KEY],
     //     queryFn: fetchPosts,
@@ -138,6 +142,8 @@ export default function WelcomePage() {
         try {
             await createPost(newProjectPost);
             setNewProject({ title: '', description: '', link: '' });
+            console.log('Post created, invalidating queries'); // Debug log
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
         } catch (error) {
             console.error('Error creating post:', error);
         }
@@ -150,6 +156,8 @@ export default function WelcomePage() {
     const handleLike = async (postId: string) => {
         try {
             await likePost(postId);
+            console.log('Post liked, invalidating queries'); // Debug log
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
         } catch (error) {
             console.error('Error liking post:', error);
         }
