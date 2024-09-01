@@ -30,7 +30,7 @@ type Post = {
     CreatedAt: string;
 };
 
-const fetchPosts = async (): Promise<Post[]> => {
+const fetchPosts = async () => {
     const response = await fetch('api/get-posts');
     if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -61,7 +61,7 @@ export default function WelcomePage() {
         queryKey: ['posts'],
         queryFn: fetchPosts,
         // refetchInterval: 5000, // 5 seconds
-        refetchOnMount: true,
+        // refetchOnMount: true,
     });
 
     const createPostMutation = useMutation({
