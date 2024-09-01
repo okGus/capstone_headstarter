@@ -32,17 +32,17 @@ type Post = {
 };
 
 // Define a shared query key
-// const POSTS_QUERY_KEY = 'posts';
+const POSTS_QUERY_KEY = 'posts';
 
-// const fetchPosts = async (): Promise<Post[]> => {
-//     const response = await fetch('api/get-posts');
-//     if (!response.ok) {
-//         throw new Error('Network response was not ok');
-//     }
+const fetchPosts = async (): Promise<Post[]> => {
+    const response = await fetch('api/get-posts');
+    if (!response.ok) {
+        throw new Error('Network response was not ok');
+    }
 
-//     const data = await response.json();
-//     return data.items;
-// };
+    const data = await response.json();
+    return data.items;
+};
 
 export default function WelcomePage() {
     const { user } = useUser();
@@ -54,7 +54,7 @@ export default function WelcomePage() {
 
     const router = useRouter();
 
-    const { posts, isLoading, error, likePost, createPost } = usePosts(user?.id);
+    // const { posts, isLoading, error, likePost, createPost } = usePosts(user?.id);
 
     useEffect(() => {
         if (!user || !user.fullName) {
@@ -63,59 +63,59 @@ export default function WelcomePage() {
         setFullname(user.fullName);
     }, [user]);
 
-    useEffect(() => {
-        console.log('Posts updated:', posts); // Debug log
-    }, [posts]);
+    // useEffect(() => {
+    //     console.log('Posts updated:', posts); // Debug log
+    // }, [posts]);
 
-    // const { data: posts, isLoading, error} = useQuery<Post[]>({
-    //     queryKey: [POSTS_QUERY_KEY],
-    //     queryFn: fetchPosts,
-    //     // refetchInterval: 5000, // 5 seconds
-    //     // refetchOnMount: true,
-    // });
+    const { data: posts, isLoading, error} = useQuery<Post[]>({
+        queryKey: [POSTS_QUERY_KEY],
+        queryFn: fetchPosts,
+        // refetchInterval: 5000, // 5 seconds
+        // refetchOnMount: true,
+    });
 
-    // const createPostMutation = useMutation({
-    //     mutationFn: (newPost: any) =>
-    //         fetch('/api/save-posts', {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify(newPost),
-    //         }),
-    //     onSuccess: () => {
-    //         queryClient.invalidateQueries({ queryKey: ['posts'] });
-    //         setNewProject({ title: '', description: '', link: '' });
-    //     },
-    // });
+    const createPostMutation = useMutation({
+        mutationFn: (newPost: any) =>
+            fetch('/api/save-posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newPost),
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['posts'] });
+            setNewProject({ title: '', description: '', link: '' });
+        },
+    });
 
-    // const likePostMutation = useMutation({
-    //     mutationFn: (postId: string) =>
-    //         fetch('/api/like-post', {
-    //             method: 'POST',
-    //             headers: { 'Content-Type': 'application/json' },
-    //             body: JSON.stringify({ postId }),
-    //         }),
-    //     onMutate: async (postId) => {
-    //         // Cancle any outgoing refetches
-    //         await queryClient.cancelQueries({ queryKey: [POSTS_QUERY_KEY] });
+    const likePostMutation = useMutation({
+        mutationFn: (postId: string) =>
+            fetch('/api/like-post', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId }),
+            }),
+        // onMutate: async (postId) => {
+        //     // Cancle any outgoing refetches
+        //     await queryClient.cancelQueries({ queryKey: [POSTS_QUERY_KEY] });
 
-    //         // Snapshot of the previous value
-    //         const previousPosts = queryClient.getQueryData([POSTS_QUERY_KEY]);
+        //     // Snapshot of the previous value
+        //     const previousPosts = queryClient.getQueryData([POSTS_QUERY_KEY]);
 
-    //         // Optimistically update to the new value
-    //         queryClient.setQueryData([POSTS_QUERY_KEY], (old: Post[] | undefined) =>
-    //             old ? old.map(post => post.PostPK === postId ? {...post, Likes: post.Likes + 1 } : post) : []
-    //         );
+        //     // Optimistically update to the new value
+        //     queryClient.setQueryData([POSTS_QUERY_KEY], (old: Post[] | undefined) =>
+        //         old ? old.map(post => post.PostPK === postId ? {...post, Likes: post.Likes + 1 } : post) : []
+        //     );
 
-    //         // Return a context object with the snapshotted value
-    //         return { previousPosts };
-    //     },
-    //     onError: (err, postId, context) => {
-    //         queryClient.setQueryData([POSTS_QUERY_KEY], context?.previousPosts);
-    //     },
-    //     onSuccess: () => {
-    //         queryClient.invalidateQueries({ queryKey: [POSTS_QUERY_KEY] });
-    //     },
-    // });
+        //     // Return a context object with the snapshotted value
+        //     return { previousPosts };
+        // },
+        // onError: (err, postId, context) => {
+        //     queryClient.setQueryData([POSTS_QUERY_KEY], context?.previousPosts);
+        // },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [POSTS_QUERY_KEY] });
+        },
+    });
 
     const handleInputChange = (e: { target: { name: string; value: string }; }) => {
         const { name, value } = e.target;
@@ -138,30 +138,30 @@ export default function WelcomePage() {
             likes: 0,
         };
 
-        // createPostMutation.mutate(newProjectPost);
-        try {
-            await createPost(newProjectPost);
-            setNewProject({ title: '', description: '', link: '' });
-            console.log('Post created, invalidating queries'); // Debug log
-            queryClient.invalidateQueries({ queryKey: ['posts'] });
-        } catch (error) {
-            console.error('Error creating post:', error);
-        }
+        createPostMutation.mutate(newProjectPost);
+        // try {
+        //     await createPost(newProjectPost);
+        //     setNewProject({ title: '', description: '', link: '' });
+        //     console.log('Post created, invalidating queries'); // Debug log
+        //     queryClient.invalidateQueries({ queryKey: ['posts'] });
+        // } catch (error) {
+        //     console.error('Error creating post:', error);
+        // }
     };
 
-    // const likePost = async (postId: string) => {
-    //     likePostMutation.mutate(postId);
+    const likePost = async (postId: string) => {
+        likePostMutation.mutate(postId);
+    };
+
+    // const handleLike = async (postId: string) => {
+    //     try {
+    //         await likePost(postId);
+    //         console.log('Post liked, invalidating queries'); // Debug log
+    //         queryClient.invalidateQueries({ queryKey: ['posts'] });
+    //     } catch (error) {
+    //         console.error('Error liking post:', error);
+    //     }
     // };
-
-    const handleLike = async (postId: string) => {
-        try {
-            await likePost(postId);
-            console.log('Post liked, invalidating queries'); // Debug log
-            queryClient.invalidateQueries({ queryKey: ['posts'] });
-        } catch (error) {
-            console.error('Error liking post:', error);
-        }
-    };
 
     const handleDonate = async (amount: number) => {
         console.log(`Initiating donation of $${amount}`);
@@ -347,7 +347,7 @@ export default function WelcomePage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => handleLike(project.PostPK)}
+                                                            onClick={() => likePost(project.PostPK)}
                                                         >
                                                             <HeartIcon className="h-4 w-4" />
                                                         </Button>
