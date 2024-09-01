@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { ScanCommand, DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { headers } from "next/headers";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   const client = new DynamoDBClient({
@@ -34,9 +38,19 @@ export async function GET() {
       Comments: Array.isArray(post.Comments) ? post.Comments : []
     }));
 
-    return NextResponse.json({ items: postsWithComments });
+    return NextResponse.json({ items: postsWithComments }, { status: 200,
+      headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, max-age=0',
+        } 
+      });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Failed to retrieve items' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to retrieve items' }, { status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, max-age=0',
+      }
+     });
   }
 }

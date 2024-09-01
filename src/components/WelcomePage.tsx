@@ -57,12 +57,6 @@ export default function WelcomePage() {
         setFullname(user.fullName);
     }, [user]);
 
-    const { data: posts, isLoading, error} = useQuery<Post[]>({
-        queryKey: ['posts'],
-        queryFn: fetchPosts,
-        refetchInterval: 5000, // 5 seconds
-    });
-
     const createPostMutation = useMutation({
         mutationFn: (newPost: any) =>
             fetch('/api/save-posts', {
@@ -84,8 +78,16 @@ export default function WelcomePage() {
                 body: JSON.stringify({ postId }),
             }),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['posts'] });
+            queryClient.invalidateQueries({ queryKey: ['posts']});
         },
+    });
+
+    const { data: posts, isLoading: isLoading, error: error} = useQuery<Post[]>({
+        queryKey: ['posts'],
+        queryFn: fetchPosts,
+        enabled: !!user?.id,
+        
+        // refetchInterval: 5000, // 5 seconds
     });
 
     const handleInputChange = (e: { target: { name: string; value: string }; }) => {

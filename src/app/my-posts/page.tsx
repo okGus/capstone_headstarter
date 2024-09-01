@@ -101,7 +101,7 @@ export default function MyPostsPage() {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["posts"] });
-            // queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+            queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
         },
     });
 
