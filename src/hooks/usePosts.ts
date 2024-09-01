@@ -53,30 +53,35 @@ export function usePosts(userId?: string) {
     });
 
     const likePostMutation = useMutation({
-        mutationFn: (postId: string) =>
-            fetch('/api/like-post', {
+        mutationFn: async (postId: string) => {
+            const response = await fetch('/api/like-post', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ postId }),
-            }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to like post');
+            }
+            return response.json();
+        },
         onMutate: async (postId) => {
             await queryClient.cancelQueries({ queryKey: [POSTS_QUERY_KEY] });
             if (userId) {
                 await queryClient.cancelQueries({ queryKey: [USER_POSTS_QUERY_KEY, userId] });
             }
 
-            const previousPosts = queryClient.getQueryData([POSTS_QUERY_KEY]);
-            const previousUserPosts = userId ? queryClient.getQueryData([USER_POSTS_QUERY_KEY, userId]) : undefined;
+            const previousPosts = queryClient.getQueryData<Post[]>([POSTS_QUERY_KEY]);
+            const previousUserPosts = userId ? queryClient.getQueryData<Post[]>([USER_POSTS_QUERY_KEY, userId]) : undefined;
 
-            // Update both queries optimistically
-            queryClient.setQueryData([POSTS_QUERY_KEY], (old: Post[] | undefined) =>
-                old ? old.map(post => post.PostPK === postId ? { ...post, Likes: post.Likes + 1 } : post) : []
-            );
+            // Optimistically update both queries
+            const updatePosts = (oldPosts: Post[] | undefined) =>
+                oldPosts?.map(post =>
+                    post.PostPK === postId ? { ...post, Likes: post.Likes + 1 } : post
+                ) || [];
 
+            queryClient.setQueryData([POSTS_QUERY_KEY], updatePosts);
             if (userId) {
-                queryClient.setQueryData([USER_POSTS_QUERY_KEY, userId], (old: Post[] | undefined) =>
-                    old ? old.map(post => post.PostPK === postId ? { ...post, Likes: post.Likes + 1 } : post) : []
-                );
+                queryClient.setQueryData([USER_POSTS_QUERY_KEY, userId], updatePosts);
             }
 
             return { previousPosts, previousUserPosts };
@@ -87,13 +92,29 @@ export function usePosts(userId?: string) {
                 queryClient.setQueryData([USER_POSTS_QUERY_KEY, userId], context?.previousUserPosts);
             }
         },
-        onSettled: () => {
+        onSettled: (data, error, postId) => {
+            // Update the cache with the actual server response
+            if (data) {
+                queryClient.setQueryData<Post[]>([POSTS_QUERY_KEY], oldPosts =>
+                    oldPosts?.map(post =>
+                        post.PostPK === postId ? { ...post, Likes: data.likes } : post
+                    ) || []
+                );
+                if (userId) {
+                    queryClient.setQueryData<Post[]>([USER_POSTS_QUERY_KEY, userId], oldPosts =>
+                        oldPosts?.map(post =>
+                            post.PostPK === postId ? { ...post, Likes: data.likes } : post
+                        ) || []
+                    );
+                }
+            }
             queryClient.invalidateQueries({ queryKey: [POSTS_QUERY_KEY] });
             if (userId) {
                 queryClient.invalidateQueries({ queryKey: [USER_POSTS_QUERY_KEY, userId] });
             }
         },
     });
+
 
     const addCommentMutation = useMutation({
         mutationFn: (commentData: {
@@ -103,14 +124,14 @@ export function usePosts(userId?: string) {
             content: string;
         }) =>
             fetch("/api/add-comment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(commentData),
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(commentData),
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [POSTS_QUERY_KEY] });
             if (userId) {
-            queryClient.invalidateQueries({ queryKey: [USER_POSTS_QUERY_KEY, userId] });
+                queryClient.invalidateQueries({ queryKey: [USER_POSTS_QUERY_KEY, userId] });
             }
         },
     });

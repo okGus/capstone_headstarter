@@ -54,7 +54,7 @@ export default function WelcomePage() {
 
     const router = useRouter();
 
-    const { posts, isLoading, error, likePost } = usePosts();
+    const { posts, isLoading, error, likePost } = usePosts(user?.id);
 
     useEffect(() => {
         if (!user || !user.fullName) {
@@ -140,6 +140,14 @@ export default function WelcomePage() {
     // const likePost = async (postId: string) => {
     //     likePostMutation.mutate(postId);
     // };
+
+    const handleLike = async (postId: string) => {
+        try {
+            await likePost(postId);
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
 
     const handleDonate = async (amount: number) => {
         console.log(`Initiating donation of $${amount}`);
@@ -325,7 +333,7 @@ export default function WelcomePage() {
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
-                                                            onClick={() => likePost(project.PostPK)}
+                                                            onClick={() => handleLike(project.PostPK)}
                                                         >
                                                             <HeartIcon className="h-4 w-4" />
                                                         </Button>
