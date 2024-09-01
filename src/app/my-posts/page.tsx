@@ -88,20 +88,22 @@ export default function MyPostsPage() {
     //     },
     //   });
 
-      const handleCommentSubmit = (postId: string) => {
+    const handleCommentSubmit = async (postId: string) => {
         if (!user || !newComment.trim()) return;
     
-        // addCommentMutation.mutate
-        addComment({
-          postId,
-          userId: user.id,
-          userName: fullname,
-          content: newComment.trim(),
-        });
-
-        setNewComment("");
-        setCommentingOn(null);
-      };
+        try {
+            await addComment({
+                postId,
+                userId: user.id,
+                userName: fullname,
+                content: newComment.trim(),
+            });
+            setNewComment("");
+            setCommentingOn(null);
+        } catch (error) {
+            console.error('Error adding comment:', error);
+        }
+    };
 
     // const likePostMutation = useMutation({
     //     mutationFn: (postId: string) =>
@@ -137,6 +139,14 @@ export default function MyPostsPage() {
     // const likePost = async (postId: string) => {
     //     likePostMutation.mutate(postId);
     // };
+
+    const handleLike = async (postId: string) => {
+        try {
+            await likePost(postId);
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
 
     const router = useRouter();
 
@@ -236,7 +246,7 @@ export default function MyPostsPage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => likePost(project.PostPK)}
+                                                    onClick={() => handleLike(project.PostPK)}
                                                 >
                                                     <HeartIcon className="h-4 w-4" />
                                                 </Button>
