@@ -24,7 +24,9 @@ type Post = {
 
 const fetchPosts = async (): Promise<Post[]> => {
     console.log('Fetching posts'); // Debug log
-    const response = await fetch('/api/get-posts');
+    const response = await fetch('/api/get-posts', {
+        cache: 'no-store',
+    });
     if (!response.ok) {
         throw new Error('Network response was not ok');
     }
