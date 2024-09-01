@@ -54,7 +54,7 @@ export default function WelcomePage() {
 
     const router = useRouter();
 
-    const { posts, isLoading, error, likePost } = usePosts(user?.id);
+    const { posts, isLoading, error, likePost, createPost } = usePosts(user?.id);
 
     useEffect(() => {
         if (!user || !user.fullName) {
@@ -70,18 +70,18 @@ export default function WelcomePage() {
     //     // refetchOnMount: true,
     // });
 
-    const createPostMutation = useMutation({
-        mutationFn: (newPost: any) =>
-            fetch('/api/save-posts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newPost),
-            }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['posts'] });
-            setNewProject({ title: '', description: '', link: '' });
-        },
-    });
+    // const createPostMutation = useMutation({
+    //     mutationFn: (newPost: any) =>
+    //         fetch('/api/save-posts', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify(newPost),
+    //         }),
+    //     onSuccess: () => {
+    //         queryClient.invalidateQueries({ queryKey: ['posts'] });
+    //         setNewProject({ title: '', description: '', link: '' });
+    //     },
+    // });
 
     // const likePostMutation = useMutation({
     //     mutationFn: (postId: string) =>
@@ -134,7 +134,13 @@ export default function WelcomePage() {
             likes: 0,
         };
 
-        createPostMutation.mutate(newProjectPost);
+        // createPostMutation.mutate(newProjectPost);
+        try {
+            await createPost(newProjectPost);
+            setNewProject({ title: '', description: '', link: '' });
+        } catch (error) {
+            console.error('Error creating post:', error);
+        }
     };
 
     // const likePost = async (postId: string) => {

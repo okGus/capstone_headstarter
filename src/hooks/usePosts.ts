@@ -136,6 +136,37 @@ export function usePosts(userId?: string) {
         },
     });
 
+    const createPostMutation = useMutation({
+        mutationFn: (newPost: any) =>
+            fetch('/api/save-posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newPost),
+            }),
+        onSuccess: (data, variables) => {
+            // Assume the API returns the created post
+            const createdPost = data;
+
+            // Update the posts cache
+            queryClient.setQueryData<any[]>([POSTS_QUERY_KEY], (oldPosts) => {
+                return oldPosts ? [createdPost, ...oldPosts] : [createdPost];
+            });
+
+            // If we have a userId, also update the user posts cache
+            if (userId) {
+                queryClient.setQueryData<any[]>([USER_POSTS_QUERY_KEY, userId], (oldPosts) => {
+                    return oldPosts ? [createdPost, ...oldPosts] : [createdPost];
+                });
+            }
+
+            // Invalidate queries to ensure data consistency
+            queryClient.invalidateQueries({ queryKey: [POSTS_QUERY_KEY] });
+            if (userId) {
+                queryClient.invalidateQueries({ queryKey: [USER_POSTS_QUERY_KEY, userId] });
+            }
+        },
+    });
+
     return {
         posts: postsQuery.data,
         userPosts: userPostsQuery.data,
@@ -143,5 +174,6 @@ export function usePosts(userId?: string) {
         error: postsQuery.error || userPostsQuery.error,
         likePost: likePostMutation.mutate,
         addComment: addCommentMutation.mutate,
+        createPost: createPostMutation.mutate,
     };
 }
