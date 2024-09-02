@@ -25,17 +25,11 @@ export async function GET() {
     const result = await docClient.send(command);
     const items = result.Items || [];
 
-    // Sort posts by creation date
-    items.sort((a, b) => {
-      const dateA = new Date(a.CreatedAt);
-      const dateB = new Date(b.CreatedAt);
-      return dateB.getTime() - dateA.getTime();
-    });
-
     // Ensure Comments field exists and is an array for each post
     const postsWithComments = items.map(post => ({
       ...post,
-      Comments: Array.isArray(post.Comments) ? post.Comments : []
+      Comments: Array.isArray(post.Comments) ? post.Comments : [],
+      UserLikes: Array.from(post.UserLikes || []),
     }));
 
     return NextResponse.json({ items: postsWithComments }, { status: 200,
