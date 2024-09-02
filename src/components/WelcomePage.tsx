@@ -361,7 +361,8 @@ export default function WelcomePage() {
                             </Card>
                         </TabsContent>
                         <TabsContent value="view">
-                            <ScrollArea className="h-[600px] w-full rounded-md border p-4">
+                            <div className="overflow-auto display-block overflow-scroll w-full">
+                            <ScrollArea className="overflow-auto w-full whitespace-nowrap h-[600px] rounded-md border p-4 min-w-max">
                                 <div className="space-y-8">
                                     {isLoading && (
                                         <div>Loading projects...</div>
@@ -453,6 +454,7 @@ export default function WelcomePage() {
                                         ))}
                                 </div>
                             </ScrollArea>
+                            </div>
                         </TabsContent>
                     </Tabs>
 

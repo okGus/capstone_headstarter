@@ -247,14 +247,14 @@ export default function MyPostsPage() {
                 </nav>
                 <UserButton />
             </header>
-            <main className="flex-1 py-6 px-4 md:px-6">
+            <main className="flex-1 py-6 px-4 md:px-6 min-w-max">
                 <div className="max-w-4xl mx-auto space-y-8">
                     <Tabs defaultValue="view" className="w-full">
                         <TabsList className="grid w-full grid-cols-1">
                             <TabsTrigger value="view">My Posts</TabsTrigger>
                         </TabsList>
                     </Tabs>
-                    <ScrollArea className="h-[600px] w-full rounded-md border p-4">
+                    <ScrollArea className="overflow-auto w-full whitespace-nowrap h-[600px] w-full rounded-md border p-4">
                         <div className="space-y-8">
                             {isLoading && <div>Loading projects...</div>}
                             {error && <div>An error occurred: {(error as Error).message}</div>}
