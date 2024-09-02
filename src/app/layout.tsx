@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Providers from "./providers";
+import GoogleAnalytics from '../components/GoogleAnalytics';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,6 +20,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <GoogleAnalytics />
         <body className={inter.className}>
           <Providers>
             {children}
