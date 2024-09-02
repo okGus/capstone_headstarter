@@ -46,6 +46,8 @@ export default function MyPostsPage() {
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [isCoolingDown, setIsCoolingDown] = useState(false);
 
+    const [deletedPosts, setDeletedPosts] = useState<Set<string>>(new Set());
+
     const queryClient = useQueryClient();
 
     const fetchUserPosts = async (userId: string): Promise<Post[]> => {
@@ -72,6 +74,31 @@ export default function MyPostsPage() {
         })
         return data.items;
     };
+
+    const deletePost = async (postId: any) => {
+        setDeletedPosts(prev => new Set(prev).add(postId));
+
+        try{
+            const response = await fetch(`api/delete-post`, {
+                method: 'DELETE',
+                body: JSON.stringify({ postId: postId }),
+            });
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+        }
+        catch{
+            setDeletedPosts(prev => {
+                const updated = new Set(prev);
+                updated.delete(postId);
+                return updated;
+            });
+        }
+        finally{
+            queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+        }
+    };
+    
 
     useEffect(() => {
         if (!user || !user.fullName) {
@@ -241,6 +268,15 @@ export default function MyPostsPage() {
                                             </div>
                                         )}
                                         </CardContent>
+                                        <CardHeader className="absolute top-0 right-0 mt-2 mr-2">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => deletePost(project.PostPK)}
+                                                disabled={deletedPosts.has(project.PostPK)}
+                                            >
+                                                {deletedPosts.has(project.PostPK) ? 'Deleting...' : 'Delete'}
+                                            </Button>
+                                        </CardHeader>
                                         <CardFooter className="flex justify-between">
                                             <Button
                                                 variant="outline"

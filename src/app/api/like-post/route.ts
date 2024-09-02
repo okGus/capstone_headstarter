@@ -41,7 +41,6 @@ export async function POST(req: Request) {
 
       // Step 2: Check if the user is already in the UserLikes set
       if (!userLikes.has(userId)) {
-        console.log('User not found in UserLikes set');
         // Step 3: If not, append the userId and increment the Likes count
         const updateUserParams: UpdateCommandInput = {
           TableName: 'Posts',
@@ -67,7 +66,6 @@ export async function POST(req: Request) {
         await dynamoDbClient.send(new UpdateCommand(updateLikesParams));
 
       } else {
-        console.log('User found in UserLikes set');
         // Step 4: If the user already liked the post, remove them from the UserLikes set and decrement the Likes count
         const updateUserParams: UpdateCommandInput = {
           TableName: 'Posts',
