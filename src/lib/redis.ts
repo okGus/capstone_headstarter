@@ -20,8 +20,4 @@ redis.on('connect', () => {
     console.log('Successfully connected to Redis');
 });
 
-redis.on('ready', () => {
-    console.log('Redis client is ready');
-});
-
 export default redis;

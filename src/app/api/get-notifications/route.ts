@@ -19,6 +19,7 @@ function isNotification(obj: any): obj is Notification {
 }
 
 export async function GET(req: NextRequest) {
+    const start = Date.now();
     const searchParams = req.nextUrl.searchParams;
     const userId = searchParams.get('userId');
 
@@ -26,10 +27,22 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
     try {
+        console.log(`Fetching notifications for user ${userId}`);
+        const fetchStart = Date.now();
         const notifications = await redis.lrange(`notifications:${userId}`, 0, -1);
+        const fetchTime = Date.now() - fetchStart;
+        console.log(`Fetched ${notifications.length} notification in ${fetchTime}ms`);
+        
+        const parseStart = Date.now();
         const parsedNotifications = notifications
             .map(notificationString => JSON.parse(notificationString))
             .filter(isNotification);
+
+        const parseTime = Date.now() - parseStart;
+        console.log(`Fetched ${parsedNotifications.length} notification in ${parseTime}ms`);
+
+        const totalTime = Date.now() - start;
+        console.log(`Total time to fetch and parse notifications: ${totalTime}ms`);
 
         return NextResponse.json({ notifications: parsedNotifications });
     } catch (error) {
