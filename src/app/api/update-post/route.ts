@@ -32,33 +32,28 @@ export async function POST(req: Request) {
     updatedPost: Partial<Post>;
   }
   
+  const { postId, updatedPost }: LikePostRequest = await req.json();
 
-  if (req.method === 'POST') {
-    const { postId, updatedPost }: LikePostRequest = await req.json();
-
-    try {
-        const updateParams: UpdateCommandInput = {
-            TableName: 'Posts',
-            Key: { PostPK: postId },
-            UpdateExpression: 'SET Title = :title, Description = :description, Github_Link = :githubLink, Live_Link = :liveLink',
-            ExpressionAttributeValues: {
-                ':title': updatedPost.Title,
-                ':description': updatedPost.Description,
-                ':githubLink': updatedPost.Github_Link,
-                ':liveLink': updatedPost.Live_Link,
-            },
-            ReturnValues: 'UPDATED_NEW',
+  try {
+    const updateParams: UpdateCommandInput = {
+      TableName: 'Posts',
+      Key: { PostPK: postId },
+      UpdateExpression: 'SET Title = :title, Description = :description, Github_Link = :githubLink, Live_Link = :liveLink',
+      ExpressionAttributeValues: {
+        ':title': updatedPost.Title,
+        ':description': updatedPost.Description,
+        ':githubLink': updatedPost.Github_Link,
+        ':liveLink': updatedPost.Live_Link,
+      },
+      ReturnValues: 'UPDATED_NEW',
     };
 
     await dynamoDbClient.send(new UpdateCommand(updateParams));
 
 
-      return NextResponse.json("Success in liking post!", { status: 200 });
-    } catch (error) {
-      console.error('Error updating post:', error);
-      return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
-    }
-  } else {
-    return NextResponse.json({ error: 'Invalid request method' }, { status: 405 });
+    return NextResponse.json("Success in liking post!", { status: 200 });
+  } catch (error) {
+    console.error('Error updating post:', error);
+    return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
   }
 }
