@@ -90,10 +90,26 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleSubmitWaitlist = async (e: React.FormEvent) => {
+  const handleSubmitWaitlist = async (e: FormEvent) => {
     e.preventDefault();
-    // Implement your waitlist submission logic here
-    setMessage("Thank you for joining our waitlist!");
+
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email }),
+      });
+
+      const data = await res.json();
+
+      setMessage(data.message || "Something went wrong.");
+    } catch (error) {
+      setMessage("Something went wrong.");
+    }
+
+    // Clear fields
     setName("");
     setEmail("");
   };
