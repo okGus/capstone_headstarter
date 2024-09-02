@@ -25,6 +25,7 @@ import { UserButton, useUser } from '@clerk/nextjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import getStripe from '@/lib/get-stripejs';
 import { useRouter } from 'next/navigation';
+import Notifications from './Notifications';
 
 type Comment = {
     CommentId: string;
@@ -47,6 +48,7 @@ type Post = {
     Comments?: Comment[];
     Flair: string;
     Skills: string[];
+    UserId: string;
 };
 
 export default function WelcomePage() {
@@ -179,15 +181,29 @@ export default function WelcomePage() {
     });
 
     const likePostMutation = useMutation({
-        mutationFn: async (postId: string) =>{
-            const response = await fetch('/api/like-post', {
+        mutationFn:(postId: string) =>
+            fetch('/api/like-post', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ postId: postId, userId: user?.id }),
-            });
-        },
-        onSuccess: () => {
+                body: JSON.stringify({ postId: postId, userId: user?.id, userName: user?.fullName }),
+            }).then(res => {
+                if (!res.ok) throw new Error('Failed to like post');
+                return res.json();
+            }),
+        onSuccess: (data: {message: string, action: 'like' | 'unlike' }, variables: string) => {
             queryClient.invalidateQueries({ queryKey: ['posts']});
+
+            setLikedPosts(prev => {
+                const newSet = new Set(prev);
+                console.log('Variables in LikePostMutation',variables);
+                if (data.action === 'like') {
+                    newSet.add(variables); // variables is the postId
+                } else {
+                    newSet.delete(variables);
+                }
+
+                return newSet;
+            });
         },
     });
 
@@ -236,11 +252,11 @@ export default function WelcomePage() {
         likePostMutation.mutate(postId);
 
         // If the post is already liked then remove from setLikedPosts else add it
-        if (likedPosts.has(postId)) {
-            likedPosts.delete(postId);
-        } else {
-            likedPosts.add(postId);
-        }
+        // if (likedPosts.has(postId)) {
+        //     likedPosts.delete(postId);
+        // } else {
+        //     likedPosts.add(postId);
+        // }
 
         setTimeout(() => setIsCoolingDown(false), 1000);
     };
@@ -302,7 +318,8 @@ export default function WelcomePage() {
                     >
                         {'My Projects'}
                     </Button>
-                    <Button variant="ghost">Notifications</Button>
+                    {user && <Notifications userId={user.id} />}
+                    {/* <Button variant="ghost">Notifications</Button> */}
                 </nav>
                 <UserButton />
             </header>
