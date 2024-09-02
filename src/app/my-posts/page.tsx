@@ -46,8 +46,13 @@ type Post = {
 
 export default function MyPostsPage() {
     const { user } = useUser();
+
     const [newComment, setNewComment] = useState("");
     const [commentingOn, setCommentingOn] = useState<string | null>(null);
+    const [commentsModalOpen, setCommentsModalOpen] = useState(false);
+    const [commentsToShow, setCommentsToShow] = useState<Comment[]>([]);
+
+
     const [fullname, setFullname] = useState("");
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [isCoolingDown, setIsCoolingDown] = useState(false);
@@ -58,6 +63,14 @@ export default function MyPostsPage() {
     const [editedPost, setEditedPost] = useState<Partial<Post>>({});
 
     const queryClient = useQueryClient();
+
+    const handleViewComments = (comments: Comment[] | undefined) => {
+        if (comments && comments.length > 0) {
+            setCommentsToShow(comments);
+            setCommentsModalOpen(true);
+        }
+    };
+    
 
     const fetchUserPosts = async (userId: string): Promise<Post[]> => {
         const response = await fetch(`api/get-user-projects?userId=${userId}`);
@@ -261,23 +274,6 @@ export default function MyPostsPage() {
                                         >
                                             View Project
                                         </a>
-                                        {project.Comments && project.Comments.length > 0 && (
-                                            <div className="mt-4">
-                                                <h4 className="font-semibold mb-2">Comments:</h4>
-                                                {project.Comments.map((comment) => (
-                                                    <div
-                                                        key={comment.CommentId}
-                                                        className="bg-gray-100 p-2 rounded mb-2"
-                                                    >
-                                                        <p className="text-sm font-semibold">{comment.UserName}</p>
-                                                        <p className="text-sm">{comment.Content}</p>
-                                                        <p className="text-xs text-gray-500">
-                                                            {new Date(comment.CreatedAt).toLocaleString()}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
                                         {commentingOn === project.PostPK && (
                                             <div className="mt-4">
                                                 <Textarea
@@ -308,19 +304,29 @@ export default function MyPostsPage() {
                                         </Button>
                                     </CardHeader>
                                     <CardFooter className="flex justify-between">
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => window.open(project.Live_Link, "_blank")}
-                                        >
-                                            Visit Site
-                                        </Button>
+                                        <div className="flex items-center space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => window.open(project.Live_Link, "_blank")}
+                                            >
+                                                Visit Site
+                                            </Button>
+                                            {project.Comments && project.Comments.length > 0 && (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => handleViewComments(project.Comments)}
+                                                >
+                                                    View Comments ({project.Comments.length})
+                                                </Button>
+                                            )}
+                                        </div>
                                         <div className="flex items-center space-x-2">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => likePost(project.PostPK)}
                                             >
-                                                {likedPosts.has(project.PostPK) ? <HeartIcon color='red' /> : <HeartIcon color='none' />}
+                                                {likedPosts.has(project.PostPK) ? <HeartIcon color="red" /> : <HeartIcon color="none" />}
                                             </Button>
                                             <span>{project.Likes} likes</span>
                                             <Button
@@ -346,13 +352,13 @@ export default function MyPostsPage() {
                     © 2023 DevConnect. All rights reserved.
                 </div>
             </footer>
-            <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+            <Dialog open={commentsModalOpen} onClose={() => setCommentsModalOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ backgroundColor: '#f5f5f5', padding: '16px 24px', fontWeight: 'bold' }}>
-                    Edit Post
+                    Comments
                     <IconButton
                         edge="end"
                         color="inherit"
-                        onClick={handleCloseModal}
+                        onClick={() => setCommentsModalOpen(false)}
                         aria-label="close"
                         sx={{ position: 'absolute', right: 8, top: 8 }}
                     >
@@ -360,57 +366,25 @@ export default function MyPostsPage() {
                     </IconButton>
                 </DialogTitle>
                 <DialogContent dividers sx={{ padding: '24px' }}>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Input
-                                name="Title"
-                                value={editedPost.Title || ''}
-                                onChange={handleInputChange}
-                                placeholder="Project Title"
-                                required
-                                fullWidth
-                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
-                            />
+                    {commentsToShow.length > 0 ? (
+                        <div>
+                            {commentsToShow.map((comment) => (
+                                <div key={comment.CommentId} className="bg-gray-100 p-2 rounded mb-2">
+                                    <p className="text-sm font-semibold">{comment.UserName}</p>
+                                    <p className="text-sm">{comment.Content}</p>
+                                    <p className="text-xs text-gray-500">
+                                        {new Date(comment.CreatedAt).toLocaleString()}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
-                        <div className="space-y-2">
-                            <Textarea
-                                name="Description"
-                                value={editedPost.Description || ''}
-                                onChange={handleInputChange}
-                                placeholder="Project Description"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Input
-                                name="Github_Link"
-                                value={editedPost.Github_Link || ''}
-                                onChange={handleInputChange}
-                                placeholder="Github Link"
-                                required
-                                fullWidth
-                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Input
-                                name="Live_Link"
-                                value={editedPost.Live_Link || ''}
-                                onChange={handleInputChange}
-                                placeholder="Live Link"
-                                required
-                                fullWidth
-                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
-                            />
-                        </div>
-                    </div>
+                    ) : (
+                        <p>No comments available.</p>
+                    )}
                 </DialogContent>
                 <DialogActions sx={{ padding: '16px 24px', backgroundColor: '#f5f5f5' }}>
-                    <Button onClick={handleCloseModal} variant="outline">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSaveChanges} color="primary" variant="outline">
-                        Save
+                    <Button onClick={() => setCommentsModalOpen(false)} variant="outline">
+                        Close
                     </Button>
                 </DialogActions>
             </Dialog>
