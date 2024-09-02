@@ -3,6 +3,12 @@ import { FormEvent, JSX, SVGProps, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import {
     Card,
     CardContent,
@@ -20,6 +26,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import getStripe from '@/lib/get-stripejs';
 import { useRouter } from 'next/navigation';
 
+type Comment = {
+    CommentId: string;
+    UserId: string;
+    UserName: string;
+    Content: string;
+    CreatedAt: string;
+};
+
 type Post = {
     PostPK: string;
     Author: string;
@@ -30,10 +44,17 @@ type Post = {
     Likes: number;
     UserLikes: Set<string>;
     CreatedAt: string;
+    Comments?: Comment[];
 };
 
 export default function WelcomePage() {
     const { user } = useUser();
+
+    const [newComment, setNewComment] = useState("");
+    const [commentingOn, setCommentingOn] = useState<string | null>(null);
+    const [commentsModalOpen, setCommentsModalOpen] = useState(false);
+    const [commentsToShow, setCommentsToShow] = useState<Comment[]>([]);
+
     const [fullname, setFullname] = useState('');
     const [newProject, setNewProject] = useState({ title: '', description: '', github_link: '', live_link: '' });
     const [customAmount, setCustomAmount] = useState<string>('');
@@ -44,6 +65,13 @@ export default function WelcomePage() {
     const queryClient = useQueryClient();
 
     const router = useRouter();
+
+    const handleViewComments = (comments: Comment[] | undefined) => {
+        if (comments && comments.length > 0) {
+            setCommentsToShow(comments);
+            setCommentsModalOpen(true);
+        }
+    };
 
     const fetchPosts = async (): Promise<Post[]> => {
         const response = await fetch('api/get-posts');
@@ -77,6 +105,36 @@ export default function WelcomePage() {
         }
         setFullname(user.fullName);
     }, [user]);
+
+    const addCommentMutation = useMutation({
+        mutationFn: (commentData: {
+            postId: string;
+            userId: string;
+            userName: string;
+            content: string;
+        }) =>
+            fetch("/api/add-comment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(commentData),
+            }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["posts"] });
+            queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+            setNewComment("");
+            setCommentingOn(null);
+        },
+    });
+
+    const handleCommentSubmit = (postId: string) => {
+        if (!user || !newComment.trim()) return;
+        addCommentMutation.mutate({
+            postId,
+            userId: user.id,
+            userName: fullname,
+            content: newComment.trim(),
+        });
+    };
     
 
     const createPostMutation = useMutation({
@@ -303,7 +361,8 @@ export default function WelcomePage() {
                             </Card>
                         </TabsContent>
                         <TabsContent value="view">
-                            <ScrollArea className="h-[600px] w-full rounded-md border p-4">
+                            <div className="overflow-auto display-block overflow-scroll w-full">
+                            <ScrollArea className="overflow-auto w-full whitespace-nowrap h-[600px] rounded-md border p-4 min-w-max">
                                 <div className="space-y-8">
                                     {isLoading && (
                                         <div>Loading projects...</div>
@@ -337,14 +396,37 @@ export default function WelcomePage() {
                                                     >
                                                         View Project
                                                     </a>
+                                                    {commentingOn === project.PostPK && (
+                                                        <div className="mt-4">
+                                                            <Textarea
+                                                                value={newComment}
+                                                                onChange={(e) => setNewComment(e.target.value)}
+                                                                placeholder="Write a comment..."
+                                                                className="mb-2"
+                                                            />
+                                                            <Button onClick={() => handleCommentSubmit(project.PostPK)}>
+                                                                Submit Comment
+                                                            </Button>
+                                                        </div>
+                                                    )}
                                                 </CardContent>
                                                 <CardFooter className="flex justify-between">
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => window.open(project.Live_Link, '_blank')}
-                                                    >
-                                                        Visit Site
-                                                    </Button>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={() => window.open(project.Live_Link, "_blank")}
+                                                        >
+                                                            Visit Site
+                                                        </Button>
+                                                        {project.Comments && project.Comments.length > 0 && (
+                                                            <Button
+                                                                variant="outline"
+                                                                onClick={() => handleViewComments(project.Comments)}
+                                                            >
+                                                                View Comments ({project.Comments.length})
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                     <div className="flex items-center space-x-2">
                                                         <Button
                                                             variant="ghost"
@@ -356,12 +438,23 @@ export default function WelcomePage() {
                                                         <span>
                                                             {project.Likes} likes
                                                         </span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() =>
+                                                                setCommentingOn(
+                                                                    commentingOn === project.PostPK ? null : project.PostPK
+                                                                )
+                                                            }
+                                                        >
+                                                            {commentingOn === project.PostPK ? "Cancel" : "Comment"}
+                                                        </Button>
                                                     </div>
                                                 </CardFooter>
                                             </Card>
                                         ))}
                                 </div>
                             </ScrollArea>
+                            </div>
                         </TabsContent>
                     </Tabs>
 
@@ -409,6 +502,42 @@ export default function WelcomePage() {
                     © 2023 DevConnect. All rights reserved.
                 </div>
             </footer>
+            <Dialog open={commentsModalOpen} onClose={() => setCommentsModalOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ backgroundColor: '#f5f5f5', padding: '16px 24px', fontWeight: 'bold' }}>
+                    Comments
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        onClick={() => setCommentsModalOpen(false)}
+                        aria-label="close"
+                        sx={{ position: 'absolute', right: 8, top: 8 }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ padding: '24px' }}>
+                    {commentsToShow.length > 0 ? (
+                        <div>
+                            {commentsToShow.map((comment) => (
+                                <div key={comment.CommentId} className="bg-gray-100 p-2 rounded mb-2">
+                                    <p className="text-sm font-semibold">{comment.UserName}</p>
+                                    <p className="text-sm">{comment.Content}</p>
+                                    <p className="text-xs text-gray-500">
+                                        {new Date(comment.CreatedAt).toLocaleString()}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p>No comments available.</p>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ padding: '16px 24px', backgroundColor: '#f5f5f5' }}>
+                    <Button onClick={() => setCommentsModalOpen(false)} variant="outline">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
