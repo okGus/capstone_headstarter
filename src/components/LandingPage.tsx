@@ -41,21 +41,36 @@ export default function LandingPage() {
   }, []);
 
   const handleScroll = () => {
+    const firstSection = document.querySelector("section");
     const sections = document.querySelectorAll("section");
-    const scrollPosition = window.pageYOffset;
 
-    sections.forEach((section, index) => {
-      if (scrollPosition >= section.offsetTop - window.innerHeight / 2) {
-        setCurrentSection(index);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Array.from(sections).indexOf(entry.target);
+            setCurrentSection(index);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: "15% 0px -95% 0px",
+        threshold: 0.2,
       }
+    );
+
+    sections.forEach((section) => {
+      observer.observe(section);
     });
   };
 
   const scrollToSection = (sectionId: string) => {
     const section = document.getElementById(sectionId);
     if (section) {
+      const offset = 50; // Adjust this value to control how much higher you want the scroll to stop
       const targetPosition =
-        section.getBoundingClientRect().top + window.pageYOffset;
+        section.getBoundingClientRect().top + window.pageYOffset - offset;
       const startPosition = window.pageYOffset;
       const distance = targetPosition - startPosition;
       const duration = 1000; // Duration in milliseconds
@@ -257,7 +272,7 @@ export default function LandingPage() {
             </div>
           </header>
           <main className="flex-1 pt-14">
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               <motion.section
                 key="hero"
                 className="w-full py-12 md:py-24 lg:py-32 xl:py-48"
@@ -266,7 +281,7 @@ export default function LandingPage() {
                 animate={currentSection === 0 ? "visible" : "exit"}
               >
                 <div className="container px-4 md:px-6">
-                  <div className="flex flex-col items-center space-y-4 text-center">
+                  <div className="flex flex-col items-center space-y-4 text-center pt-12">
                     <motion.h1
                       className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none"
                       initial={{ opacity: 0, scale: 0.5 }}
