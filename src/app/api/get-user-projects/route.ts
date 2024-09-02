@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
     // Ensure Comments field exists and is an array for each post
     const postsWithComments = items.map(post => ({
       ...post,
-      Comments: Array.isArray(post.Comments) ? post.Comments : []
+      Comments: Array.isArray(post.Comments) ? post.Comments : [],
+      UserLikes: Array.from(post.UserLikes || []),
     }));
 
     return NextResponse.json({ items: postsWithComments });

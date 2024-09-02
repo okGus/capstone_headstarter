@@ -32,18 +32,9 @@ type Post = {
     Description: string;
     Link: string;
     Likes: number;
+    UserLikes: Set<string>;
     CreatedAt: string; // Assuming it's an ISO date string
     Comments?: Comment[];
-};
-
-const fetchUserPosts = async (userId: string): Promise<Post[]> => {
-    const response = await fetch(`api/get-user-projects?userId=${userId}`);
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
-
-    const data = await response.json();
-    return data.items;
 };
 
 export default function MyPostsPage() {
@@ -51,8 +42,36 @@ export default function MyPostsPage() {
     const [newComment, setNewComment] = useState("");
     const [commentingOn, setCommentingOn] = useState<string | null>(null);
     const [fullname, setFullname] = useState("");
+    
+    const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+    const [isCoolingDown, setIsCoolingDown] = useState(false);
 
     const queryClient = useQueryClient();
+
+    const fetchUserPosts = async (userId: string): Promise<Post[]> => {
+        const response = await fetch(`api/get-user-projects?userId=${userId}`);
+        if (!response.ok) {
+            throw new Error("Network response was not ok");
+        }
+    
+        const data = await response.json();
+    
+        if (!user || !user.id) {
+            throw new Error('User not logged in');
+        }
+    
+        //Add data posts that have this user's ID in UserLikes to likedPosts
+        data.items.forEach((post: Post) => {
+            if (!post.UserLikes) {
+                return data.items;
+            }
+            const userLikes = Array.from(post.UserLikes);
+            if (userLikes.includes(user?.id)) {
+                setLikedPosts((prev) => new Set(prev).add(post.PostPK));
+            }
+        })
+        return data.items;
+    };
 
     useEffect(() => {
         if (!user || !user.fullName) {
@@ -97,7 +116,7 @@ export default function MyPostsPage() {
             fetch("/api/like-post", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ postId }),
+                body: JSON.stringify({ postId: postId, userId: user?.id }),
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["posts"] });
@@ -121,7 +140,18 @@ export default function MyPostsPage() {
     const error = userPostsError;
 
     const likePost = async (postId: string) => {
+        if (isCoolingDown) return;
+        setIsCoolingDown(true);
         likePostMutation.mutate(postId);
+
+        // If the post is already liked then remove from setLikedPosts else add it
+        if (likedPosts.has(postId)) {
+            likedPosts.delete(postId);
+        } else {
+            likedPosts.add(postId);
+        }
+
+        setTimeout(() => setIsCoolingDown(false), 1000);
     };
 
     const router = useRouter();
@@ -224,7 +254,7 @@ export default function MyPostsPage() {
                                                     size="icon"
                                                     onClick={() => likePost(project.PostPK)}
                                                 >
-                                                    <HeartIcon className="h-4 w-4" />
+                                                    {likedPosts.has(project.PostPK) ? <HeartIcon className="h-4 w-4" color='red' /> : <HeartIcon className="h-4 w-4" color='none' />}
                                                 </Button>
                                                 <span>{project.Likes} likes</span>
                                                 <Button
@@ -258,7 +288,11 @@ export default function MyPostsPage() {
     );
 }
 
-function HeartIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+interface HeartIconFilledProps extends SVGProps<SVGSVGElement> {
+    color?: string; // Add a color prop
+}
+
+function HeartIcon({ color = 'red', ...props }: HeartIconFilledProps) {
     return (
         <svg
             {...props}
@@ -266,7 +300,7 @@ function HeartIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
             width="24"
             height="24"
             viewBox="0 0 24 24"
-            fill="none"
+            fill={color}
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"

@@ -27,17 +27,8 @@ type Post = {
     Description: string;
     Link: string;
     Likes: number;
+    UserLikes: Set<string>;
     CreatedAt: string;
-};
-
-const fetchPosts = async (): Promise<Post[]> => {
-    const response = await fetch('api/get-posts');
-    if (!response.ok) {
-        throw new Error('Network response was not ok');
-    }
-
-    const data = await response.json();
-    return data.items;
 };
 
 export default function WelcomePage() {
@@ -46,9 +37,38 @@ export default function WelcomePage() {
     const [newProject, setNewProject] = useState({ title: '', description: '', link: '' });
     const [customAmount, setCustomAmount] = useState<string>('');
 
+    const [isCoolingDown, setIsCoolingDown] = useState(false);
+    const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+
     const queryClient = useQueryClient();
 
     const router = useRouter();
+
+    const fetchPosts = async (): Promise<Post[]> => {
+        const response = await fetch('api/get-posts');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+    
+        const data = await response.json();
+
+        if (!user || !user.id) {
+            throw new Error('User not logged in');
+        }
+    
+        //Add data posts that have this user's ID in UserLikes to likedPosts
+        data.items.forEach((post: Post) => {
+            if (!post.UserLikes) {
+                return data.items;
+            }
+            const userLikes = Array.from(post.UserLikes);
+            if (userLikes.includes(user?.id)) {
+                setLikedPosts((prev) => new Set(prev).add(post.PostPK));
+            }
+        })
+
+        return data.items;
+    };
 
     useEffect(() => {
         if (!user || !user.fullName) {
@@ -56,6 +76,7 @@ export default function WelcomePage() {
         }
         setFullname(user.fullName);
     }, [user]);
+    
 
     const createPostMutation = useMutation({
         mutationFn: (newPost: any) =>
@@ -71,12 +92,13 @@ export default function WelcomePage() {
     });
 
     const likePostMutation = useMutation({
-        mutationFn: (postId: string) =>
-            fetch('/api/like-post', {
+        mutationFn: async (postId: string) =>{
+            const response = await fetch('/api/like-post', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ postId }),
-            }),
+                body: JSON.stringify({ postId: postId, userId: user?.id }),
+            });
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts']});
         },
@@ -115,7 +137,18 @@ export default function WelcomePage() {
     };
 
     const likePost = async (postId: string) => {
+        if (isCoolingDown) return;
+        setIsCoolingDown(true);
         likePostMutation.mutate(postId);
+
+        // If the post is already liked then remove from setLikedPosts else add it
+        if (likedPosts.has(postId)) {
+            likedPosts.delete(postId);
+        } else {
+            likedPosts.add(postId);
+        }
+
+        setTimeout(() => setIsCoolingDown(false), 1000);
     };
 
     const handleDonate = async (amount: number) => {
@@ -304,7 +337,7 @@ export default function WelcomePage() {
                                                             size="icon"
                                                             onClick={() => likePost(project.PostPK)}
                                                         >
-                                                            <HeartIcon className="h-4 w-4" />
+                                                            {likedPosts.has(project.PostPK) ? <HeartIcon className="h-4 w-4" color='red' /> : <HeartIcon className="h-4 w-4" color='none' />}
                                                         </Button>
                                                         <span>
                                                             {project.Likes} likes
@@ -366,7 +399,11 @@ export default function WelcomePage() {
     );
 }
 
-function HeartIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+interface HeartIconFilledProps extends SVGProps<SVGSVGElement> {
+    color?: string; // Add a color prop
+}
+
+function HeartIcon({ color = 'red', ...props }: HeartIconFilledProps) {
     return (
         <svg
             {...props}
@@ -374,7 +411,7 @@ function HeartIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
             width="24"
             height="24"
             viewBox="0 0 24 24"
-            fill="none"
+            fill={color}
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
