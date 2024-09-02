@@ -75,6 +75,43 @@ export default function ResultPage() {
         );
     }
 
+    if (!session) {
+        return (
+            <Card className="w-[350px] mx-auto mt-10">
+                <CardHeader>
+                    <CardTitle>Session Not Found</CardTitle>
+                    <CardDescription>We couldn`&apos`t find the donation session.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={() => router.push('/')} className="w-full">
+                        Return to Home
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (session.payment_status !== 'paid') {
+        return (
+            <Card className="w-[350px] mx-auto mt-10">
+                <CardHeader>
+                    <CardTitle>Donation Not Completed</CardTitle>
+                    <CardDescription>Your donation process was not completed.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-2">
+                        <p>Amount: {(session.amount_total / 100).toFixed(2)} {session.currency.toUpperCase()}</p>
+                        <p>Status: {session.payment_status}</p>
+                        <p>You can try donating again from our home page.</p>
+                    </div>
+                    <Button onClick={() => router.push('/')} className="w-full mt-4">
+                        Return to Home
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="w-[350px] mx-auto mt-10">
             <CardHeader>
