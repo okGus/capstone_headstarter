@@ -45,6 +45,8 @@ type Post = {
     UserLikes: Set<string>;
     CreatedAt: string;
     Comments?: Comment[];
+    Flair: string;
+    Skills: string[];
 };
 
 export default function WelcomePage() {
@@ -56,7 +58,7 @@ export default function WelcomePage() {
     const [commentsToShow, setCommentsToShow] = useState<Comment[]>([]);
 
     const [fullname, setFullname] = useState('');
-    const [newProject, setNewProject] = useState({ title: '', description: '', github_link: '', live_link: '' });
+    const [newProject, setNewProject] = useState({ title: '', description: '', flair: 'DevShow', github_link: '', live_link: '', skills: [] as string[] });
     const [customAmount, setCustomAmount] = useState<string>('');
 
     const [isCoolingDown, setIsCoolingDown] = useState(false);
@@ -64,7 +66,33 @@ export default function WelcomePage() {
 
     const queryClient = useQueryClient();
 
+    const [skillInput, setSkillInput] = useState('');
+
     const router = useRouter();
+
+    // const handleSkillChange = (e: any, index: any) => {
+    //     const updatedSkills = [...newProject.skills];
+    //     updatedSkills[index] = e.target.value;
+    //     setNewProject({ ...newProject, skills: updatedSkills });
+    // };
+    
+    const addSkill = () => {
+        const trimmedSkillInput = skillInput.trim(); // Trim whitespace from the input
+    
+        if (trimmedSkillInput && newProject.skills.length < 5) {
+            setNewProject(prevState => ({
+                ...prevState,
+                skills: [...prevState.skills, trimmedSkillInput],
+            }));
+            setSkillInput(''); // Clear the input field after adding the skill
+        }
+    };
+    
+    
+    const removeSkill = (index: any) => {
+        const updatedSkills = newProject.skills.filter((_, i) => i !== index);
+        setNewProject({ ...newProject, skills: updatedSkills });
+    };
 
     const handleViewComments = (comments: Comment[] | undefined) => {
         if (comments && comments.length > 0) {
@@ -146,7 +174,7 @@ export default function WelcomePage() {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts'] });
-            setNewProject({ title: '', description: '', github_link: '', live_link: '' });
+            setNewProject({ title: '', description: '', flair: '', github_link: '', live_link: '', skills: [] });
         },
     });
 
@@ -175,6 +203,13 @@ export default function WelcomePage() {
         const { name, value } = e.target;
         setNewProject((prev) => ({ ...prev, [name]: value }));
     };
+
+    const handleKeyDown = (e: any) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addSkill();
+        }
+    }
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -298,60 +333,127 @@ export default function WelcomePage() {
                                     </CardDescription>
                                 </CardHeader>
                                 <form onSubmit={handleSubmit}>
-                                    <CardContent className="space-y-4">
+                                <CardContent className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="project-title">
+                                            Project Title
+                                        </Label>
+                                        <Input
+                                            id="project-title"
+                                            name="title"
+                                            value={newProject.title}
+                                            onChange={handleInputChange}
+                                            placeholder="Enter your project title"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="project-description">
+                                            Project Description
+                                        </Label>
+                                        <Textarea
+                                            id="project-description"
+                                            name="description"
+                                            value={newProject.description}
+                                            onChange={handleInputChange}
+                                            placeholder="Describe your project"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="project-flairs">Project Flairs</Label>
+                                        <div className="flex space-x-2">
+                                            <div className="relative group">
+                                                <button
+                                                    type="button"
+                                                    className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevShow' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                                    onClick={() => setNewProject({ ...newProject, flair: 'DevShow' })}
+                                                >
+                                                    DevShow
+                                                </button>
+                                                <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-black text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                    Show off your development project!
+                                                </div>
+                                            </div>
+                                            <div className="relative group">
+                                                <button
+                                                    type="button"
+                                                    className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevHelp' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                                    onClick={() => setNewProject({ ...newProject, flair: 'DevHelp' })}
+                                                >
+                                                    DevHelp
+                                                </button>
+                                                <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-black text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                    Ask for help on your development project.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="project-link">
+                                            Project Github Link
+                                        </Label>
+                                        <Input
+                                            id="project-link"
+                                            name="github_link"
+                                            value={newProject.github_link}
+                                            onChange={handleInputChange}
+                                            placeholder="https://your-project-link.com"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="project-link">
+                                            Project Live Link
+                                        </Label>
+                                        <Input
+                                            id="project-link"
+                                            name="live_link"
+                                            value={newProject.live_link}
+                                            onChange={handleInputChange}
+                                            placeholder="https://your-project-link.com"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="project-skills">Project Skills</Label>
                                         <div className="space-y-2">
-                                            <Label htmlFor="project-title">
-                                                Project Title
-                                            </Label>
                                             <Input
-                                                id="project-title"
-                                                name="title"
-                                                value={newProject.title}
-                                                onChange={handleInputChange}
-                                                placeholder="Enter your project title"
-                                                required
+                                                id="project-skills"
+                                                name="skillInput"
+                                                value={skillInput}
+                                                onChange={(e) => setSkillInput(e.target.value)}
+                                                placeholder="Add a skill"
+                                                maxLength={50}
+                                                className="w-full"
+                                                onKeyDown={handleKeyDown}
                                             />
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {newProject.skills.map((skill, index) => (
+                                                    <div key={index} className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-full">
+                                                        <span>{skill}</span>
+                                                        <button
+                                                            type="button"
+                                                            className="text-red-500"
+                                                            onClick={() => removeSkill(index)}
+                                                        >
+                                                            &times;
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            {newProject.skills.length < 5 && (
+                                                <button
+                                                    type="button"
+                                                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
+                                                    onClick={addSkill}
+                                                >
+                                                    Add Skill
+                                                </button>
+                                            )}
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="project-description">
-                                                Project Description
-                                            </Label>
-                                            <Textarea
-                                                id="project-description"
-                                                name="description"
-                                                value={newProject.description}
-                                                onChange={handleInputChange}
-                                                placeholder="Describe your project"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="project-link">
-                                                Project Github Link
-                                            </Label>
-                                            <Input
-                                                id="project-link"
-                                                name="github_link"
-                                                value={newProject.github_link}
-                                                onChange={handleInputChange}
-                                                placeholder="https://your-project-link.com"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="project-link">
-                                                Project Live Link
-                                            </Label>
-                                            <Input
-                                                id="project-link"
-                                                name="live_link"
-                                                value={newProject.live_link}
-                                                onChange={handleInputChange}
-                                                placeholder="https://your-project-link.com"
-                                                required
-                                            />
-                                        </div>
-                                    </CardContent>
+                                    </div>
+                                </CardContent>
                                     <CardFooter>
                                         <Button type="submit">
                                             Create Project Post
@@ -381,7 +483,10 @@ export default function WelcomePage() {
                                                         {project.Title}
                                                     </CardTitle>
                                                     <CardDescription>
-                                                        By {project.Author}
+                                                        By {project.Author} <span className="mx-1">•</span>
+                                                        <span className={`px-2 py-1 rounded-md ${project.Flair === 'DevShow' ? 'bg-blue-500 text-white' : project.Flair === 'DevHelp' ? 'bg-green-500 text-white' : ''}`}>
+                                                            {project.Flair}
+                                                        </span>
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent>
@@ -396,6 +501,16 @@ export default function WelcomePage() {
                                                     >
                                                         View Project
                                                     </a>
+                                                    {/* Skills Display */}
+                                                    {project.Skills && project.Skills.length > 0 && (
+                                                        <div className="mt-2 flex flex-wrap gap-2">
+                                                            {project.Skills.map((skill, index) => (
+                                                                <span key={index} className="px-2 py-1 bg-gray-200 text-gray-800 rounded-md">
+                                                                    {skill}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                     {commentingOn === project.PostPK && (
                                                         <div className="mt-4">
                                                             <Textarea

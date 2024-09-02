@@ -42,6 +42,7 @@ type Post = {
     UserLikes: Set<string>;
     CreatedAt: string;
     Comments?: Comment[];
+    Flair: string;
 };
 
 export default function MyPostsPage() {
@@ -217,7 +218,8 @@ export default function MyPostsPage() {
             Title: post.Title,
             Description: post.Description,
             Github_Link: post.Github_Link,
-            Live_Link: post.Live_Link
+            Live_Link: post.Live_Link,
+            Flair: post.Flair,
         });
         setOpenModal(true);
     };
@@ -259,10 +261,32 @@ export default function MyPostsPage() {
                             {isLoading && <div>Loading projects...</div>}
                             {error && <div>An error occurred: {(error as Error).message}</div>}
                             {postsToDisplay && postsToDisplay.map((project) => (
-                                <Card key={project.PostPK}>
+                                <Card key={project.PostPK} className="relative p-4">
+                                        <div className="flex flex-col items-end space-y-2 absolute top-2 right-2">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => handleOpenModal(project)}
+                                                className="w-20"
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => deletePost(project.PostPK)}
+                                                disabled={deletedPosts.has(project.PostPK)}
+                                                className="w-20"
+                                            >
+                                                {deletedPosts.has(project.PostPK) ? 'Deleting...' : 'Delete'}
+                                            </Button>
+                                        </div>
                                     <CardHeader>
                                         <CardTitle>{project.Title}</CardTitle>
-                                        <CardDescription>By {project.Author}</CardDescription>
+                                        <CardDescription>
+                                            By {project.Author} <span className="mx-1">•</span>
+                                            <span className={`px-2 py-1 rounded-md ${project.Flair === 'DevShow' ? 'bg-blue-500 text-white' : project.Flair === 'DevHelp' ? 'bg-green-500 text-white' : ''}`}>
+                                                {project.Flair}
+                                            </span>
+                                        </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <p className="mb-2">{project.Description}</p>
@@ -288,7 +312,7 @@ export default function MyPostsPage() {
                                             </div>
                                         )}
                                     </CardContent>
-                                    <CardHeader className="absolute top-0 right-0 mt-2 mr-2 flex row">
+                                    {/* <CardHeader className="absolute top-0 right-0 mt-2 mr-2 flex row">
                                         <Button
                                             variant="outline"
                                             onClick={() => handleOpenModal(project)}
@@ -302,7 +326,7 @@ export default function MyPostsPage() {
                                         >
                                             {deletedPosts.has(project.PostPK) ? 'Deleting...' : 'Delete'}
                                         </Button>
-                                    </CardHeader>
+                                    </CardHeader> */}
                                     <CardFooter className="flex justify-between">
                                         <div className="flex items-center space-x-2">
                                             <Button
@@ -352,6 +376,74 @@ export default function MyPostsPage() {
                     © 2023 DevConnect. All rights reserved.
                 </div>
             </footer>
+            <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ backgroundColor: '#f5f5f5', padding: '16px 24px', fontWeight: 'bold' }}>
+                    Edit Post
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        onClick={handleCloseModal}
+                        aria-label="close"
+                        sx={{ position: 'absolute', right: 8, top: 8 }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ padding: '24px' }}>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Input
+                                name="Title"
+                                value={editedPost.Title || ''}
+                                onChange={handleInputChange}
+                                placeholder="Project Title"
+                                required
+                                fullWidth
+                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Textarea
+                                name="Description"
+                                value={editedPost.Description || ''}
+                                onChange={handleInputChange}
+                                placeholder="Project Description"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Input
+                                name="Github_Link"
+                                value={editedPost.Github_Link || ''}
+                                onChange={handleInputChange}
+                                placeholder="Github Link"
+                                required
+                                fullWidth
+                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Input
+                                name="Live_Link"
+                                value={editedPost.Live_Link || ''}
+                                onChange={handleInputChange}
+                                placeholder="Live Link"
+                                required
+                                fullWidth
+                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
+                            />
+                        </div>
+                    </div>
+                </DialogContent>
+                <DialogActions sx={{ padding: '16px 24px', backgroundColor: '#f5f5f5' }}>
+                    <Button onClick={handleCloseModal} variant="outline">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSaveChanges} color="primary" variant="outline">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
             <Dialog open={commentsModalOpen} onClose={() => setCommentsModalOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle sx={{ backgroundColor: '#f5f5f5', padding: '16px 24px', fontWeight: 'bold' }}>
                     Comments
