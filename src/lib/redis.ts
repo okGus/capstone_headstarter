@@ -20,4 +20,32 @@ redis.on('connect', () => {
     console.log('Successfully connected to Redis');
 });
 
+// Helper type to extract method names of the Redis instance
+type RedisMethodNames = {
+    [K in keyof Redis]: Redis[K] extends (...args: any[]) => any ? K : never;
+}[keyof Redis];
+
+// Wrap Redis methods with performance logging
+const wrapRedisMethod = (methodName: RedisMethodNames) => {
+    // Ensure methodName is defined and valid
+    if (methodName && typeof redis[methodName] === 'function') {
+        const originalMethod = redis[methodName] as (...args: any[]) => any;
+        redis[methodName] = function (...args: any[]) {
+            const start = Date.now();
+            const result = originalMethod.apply(redis, args);
+            if (result instanceof Promise) {
+                return result.finally(() => {
+                    console.log(`Redis ${methodName} took ${Date.now() - start}ms`);
+                });
+            }
+            console.log(`Redis ${methodName} took ${Date.now() - start}ms`);
+            return result;
+        };
+    }
+};
+
+// Wrap common Redis methods
+['get', 'set', 'lrange', 'lpush', 'rpush'].forEach(method => {
+    wrapRedisMethod(method as RedisMethodNames);
+});
 export default redis;
