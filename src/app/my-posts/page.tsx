@@ -1,10 +1,11 @@
 'use client'
+import { FormEvent, JSX, SVGProps, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FormEvent, JSX, SVGProps, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation"
 import {
     Card,
     CardContent,
@@ -13,9 +14,14 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Input from '@mui/material/Input';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 type Comment = {
     CommentId: string;
@@ -23,17 +29,18 @@ type Comment = {
     UserName: string;
     Content: string;
     CreatedAt: string;
-  };
+};
 
 type Post = {
     PostPK: string;
     Author: string;
     Title: string;
     Description: string;
-    Link: string;
+    Github_Link: string;
+    Live_Link: string;
     Likes: number;
     UserLikes: Set<string>;
-    CreatedAt: string; // Assuming it's an ISO date string
+    CreatedAt: string;
     Comments?: Comment[];
 };
 
@@ -42,11 +49,13 @@ export default function MyPostsPage() {
     const [newComment, setNewComment] = useState("");
     const [commentingOn, setCommentingOn] = useState<string | null>(null);
     const [fullname, setFullname] = useState("");
-    
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [isCoolingDown, setIsCoolingDown] = useState(false);
-
     const [deletedPosts, setDeletedPosts] = useState<Set<string>>(new Set());
+
+    const [openModal, setOpenModal] = useState(false);
+    const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+    const [editedPost, setEditedPost] = useState<Partial<Post>>({});
 
     const queryClient = useQueryClient();
 
@@ -55,18 +64,12 @@ export default function MyPostsPage() {
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }
-    
         const data = await response.json();
-    
         if (!user || !user.id) {
             throw new Error('User not logged in');
         }
-    
-        //Add data posts that have this user's ID in UserLikes to likedPosts
         data.items.forEach((post: Post) => {
-            if (!post.UserLikes) {
-                return data.items;
-            }
+            if (!post.UserLikes) return;
             const userLikes = Array.from(post.UserLikes);
             if (userLikes.includes(user?.id)) {
                 setLikedPosts((prev) => new Set(prev).add(post.PostPK));
@@ -77,8 +80,7 @@ export default function MyPostsPage() {
 
     const deletePost = async (postId: any) => {
         setDeletedPosts(prev => new Set(prev).add(postId));
-
-        try{
+        try {
             const response = await fetch(`api/delete-post`, {
                 method: 'DELETE',
                 body: JSON.stringify({ postId: postId }),
@@ -87,56 +89,73 @@ export default function MyPostsPage() {
                 throw new Error("Network response was not ok");
             }
         }
-        catch{
+        catch {
             setDeletedPosts(prev => {
                 const updated = new Set(prev);
                 updated.delete(postId);
                 return updated;
             });
         }
-        finally{
+        finally {
             queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
         }
     };
-    
+
+    const updatePost = async (postId: string, updatedPost: Partial<Post>) => {
+        try {
+            console.log('updatedPost', updatedPost);
+            const response = await fetch(`api/update-post`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId, updatedPost }),
+            });
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+        }
+        catch (error) {
+            console.error("Error updating post:", (error as Error).message);
+        }
+        finally {
+            queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+            handleCloseModal();
+        }
+    };
 
     useEffect(() => {
-        if (!user || !user.fullName) {
-          return;
-        }
+        if (!user || !user.fullName) return;
         setFullname(user.fullName);
-      }, [user]);
+    }, [user]);
 
     const addCommentMutation = useMutation({
         mutationFn: (commentData: {
-          postId: string;
-          userId: string;
-          userName: string;
-          content: string;
+            postId: string;
+            userId: string;
+            userName: string;
+            content: string;
         }) =>
-          fetch("/api/add-comment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(commentData),
-          }),
+            fetch("/api/add-comment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(commentData),
+            }),
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["posts"] });
-          queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
-          setNewComment("");
-          setCommentingOn(null);
+            queryClient.invalidateQueries({ queryKey: ["posts"] });
+            queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+            setNewComment("");
+            setCommentingOn(null);
         },
-      });
+    });
 
-      const handleCommentSubmit = (postId: string) => {
+    const handleCommentSubmit = (postId: string) => {
         if (!user || !newComment.trim()) return;
-    
         addCommentMutation.mutate({
-          postId,
-          userId: user.id,
-          userName: fullname,
-          content: newComment.trim(),
+            postId,
+            userId: user.id,
+            userName: fullname,
+            content: newComment.trim(),
         });
-      };
+    };
 
     const likePostMutation = useMutation({
         mutationFn: (postId: string) =>
@@ -161,7 +180,6 @@ export default function MyPostsPage() {
         enabled: !!user?.id,
     });
 
-    // Sort by likes
     const postsToDisplay = userPosts?.sort((a, b) => b.Likes - a.Likes);
     const isLoading = isLoadingUserPosts;
     const error = userPostsError;
@@ -170,31 +188,49 @@ export default function MyPostsPage() {
         if (isCoolingDown) return;
         setIsCoolingDown(true);
         likePostMutation.mutate(postId);
-
-        // If the post is already liked then remove from setLikedPosts else add it
         if (likedPosts.has(postId)) {
             likedPosts.delete(postId);
         } else {
             likedPosts.add(postId);
         }
-
         setTimeout(() => setIsCoolingDown(false), 1000);
     };
 
     const router = useRouter();
+
+    const handleOpenModal = (post: Post) => {
+        setSelectedPost(post);
+        setEditedPost({
+            Title: post.Title,
+            Description: post.Description,
+            Github_Link: post.Github_Link,
+            Live_Link: post.Live_Link
+        });
+        setOpenModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setEditedPost(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
+
+    const handleSaveChanges = () => {
+        if (selectedPost) {
+            updatePost(selectedPost.PostPK, editedPost);
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen">
             <header className="px-4 lg:px-6 h-14 flex items-center border-b">
                 <span className="font-semibold text-lg">DevConnect</span>
                 <nav className="ml-auto flex gap-4 sm:gap-6">
-                <Button variant="ghost" onClick={() => router.push('/')}>
-                    Home
-                </Button>
-                <Button variant="ghost" onClick={() => router.push('/')}>
-                    {"All Projects"}
-                </Button>
-                <Button variant="ghost">Notifications</Button>
+                    <Button variant="ghost" onClick={() => router.push('/')}>Home</Button>
+                    <Button variant="ghost" onClick={() => router.push('/')}>{"All Projects"}</Button>
+                    <Button variant="ghost">Notifications</Button>
                 </nav>
                 <UserButton />
             </header>
@@ -205,112 +241,102 @@ export default function MyPostsPage() {
                             <TabsTrigger value="view">My Posts</TabsTrigger>
                         </TabsList>
                     </Tabs>
-
                     <ScrollArea className="h-[600px] w-full rounded-md border p-4">
                         <div className="space-y-8">
                             {isLoading && <div>Loading projects...</div>}
-                            {error && (
-                                <div>An error occurred: {(error as Error).message}</div>
-                            )}
-                            {postsToDisplay &&
-                                postsToDisplay.map((project) => (
-                                    <Card key={project.PostPK}>
-                                        <CardHeader>
-                                            <CardTitle>{project.Title}</CardTitle>
-                                            <CardDescription>By {project.Author}</CardDescription>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="mb-2">{project.Description}</p>
-                                            <a
-                                                href={project.Link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-500 hover:underline"
-                                            >
-                                                View Project
-                                            </a>
-                                            {project.Comments && project.Comments.length > 0 && (
+                            {error && <div>An error occurred: {(error as Error).message}</div>}
+                            {postsToDisplay && postsToDisplay.map((project) => (
+                                <Card key={project.PostPK}>
+                                    <CardHeader>
+                                        <CardTitle>{project.Title}</CardTitle>
+                                        <CardDescription>By {project.Author}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="mb-2">{project.Description}</p>
+                                        <a
+                                            href={project.Github_Link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-500 hover:underline"
+                                        >
+                                            View Project
+                                        </a>
+                                        {project.Comments && project.Comments.length > 0 && (
                                             <div className="mt-4">
-                                            <h4 className="font-semibold mb-2">Comments:</h4>
-                                            {project.Comments.map((comment) => (
-                                                <div
-                                                key={comment.CommentId}
-                                                className="bg-gray-100 p-2 rounded mb-2"
-                                                >
-                                                <p className="text-sm font-semibold">
-                                                    {comment.UserName}
-                                                </p>
-                                                <p className="text-sm">{comment.Content}</p>
-                                                <p className="text-xs text-gray-500">
-                                                    {new Date(
-                                                    comment.CreatedAt
-                                                    ).toLocaleString()}
-                                                </p>
-                                                </div>
-                                            ))}
+                                                <h4 className="font-semibold mb-2">Comments:</h4>
+                                                {project.Comments.map((comment) => (
+                                                    <div
+                                                        key={comment.CommentId}
+                                                        className="bg-gray-100 p-2 rounded mb-2"
+                                                    >
+                                                        <p className="text-sm font-semibold">{comment.UserName}</p>
+                                                        <p className="text-sm">{comment.Content}</p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {new Date(comment.CreatedAt).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                ))}
                                             </div>
                                         )}
                                         {commentingOn === project.PostPK && (
                                             <div className="mt-4">
-                                            <Textarea
-                                                value={newComment}
-                                                onChange={(e) => setNewComment(e.target.value)}
-                                                placeholder="Write a comment..."
-                                                className="mb-2"
-                                            />
-                                            <Button
-                                                onClick={() =>
-                                                handleCommentSubmit(project.PostPK)
-                                                }
-                                            >
-                                                Submit Comment
-                                            </Button>
+                                                <Textarea
+                                                    value={newComment}
+                                                    onChange={(e) => setNewComment(e.target.value)}
+                                                    placeholder="Write a comment..."
+                                                    className="mb-2"
+                                                />
+                                                <Button onClick={() => handleCommentSubmit(project.PostPK)}>
+                                                    Submit Comment
+                                                </Button>
                                             </div>
                                         )}
-                                        </CardContent>
-                                        <CardHeader className="absolute top-0 right-0 mt-2 mr-2">
+                                    </CardContent>
+                                    <CardHeader className="absolute top-0 right-0 mt-2 mr-2 flex row">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => handleOpenModal(project)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => deletePost(project.PostPK)}
+                                            disabled={deletedPosts.has(project.PostPK)}
+                                        >
+                                            {deletedPosts.has(project.PostPK) ? 'Deleting...' : 'Delete'}
+                                        </Button>
+                                    </CardHeader>
+                                    <CardFooter className="flex justify-between">
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => window.open(project.Live_Link, "_blank")}
+                                        >
+                                            Visit Site
+                                        </Button>
+                                        <div className="flex items-center space-x-2">
                                             <Button
-                                                variant="outline"
-                                                onClick={() => deletePost(project.PostPK)}
-                                                disabled={deletedPosts.has(project.PostPK)}
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => likePost(project.PostPK)}
                                             >
-                                                {deletedPosts.has(project.PostPK) ? 'Deleting...' : 'Delete'}
+                                                {likedPosts.has(project.PostPK) ? <HeartIcon color='red' /> : <HeartIcon color='none' />}
                                             </Button>
-                                        </CardHeader>
-                                        <CardFooter className="flex justify-between">
+                                            <span>{project.Likes} likes</span>
                                             <Button
-                                                variant="outline"
-                                                onClick={() => window.open(project.Link, "_blank")}
+                                                variant="ghost"
+                                                onClick={() =>
+                                                    setCommentingOn(
+                                                        commentingOn === project.PostPK ? null : project.PostPK
+                                                    )
+                                                }
                                             >
-                                                Visit Site
+                                                {commentingOn === project.PostPK ? "Cancel" : "Comment"}
                                             </Button>
-                                            <div className="flex items-center space-x-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => likePost(project.PostPK)}
-                                                >
-                                                    {likedPosts.has(project.PostPK) ? <HeartIcon className="h-4 w-4" color='red' /> : <HeartIcon className="h-4 w-4" color='none' />}
-                                                </Button>
-                                                <span>{project.Likes} likes</span>
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() =>
-                                                        setCommentingOn(
-                                                        commentingOn === project.PostPK
-                                                            ? null
-                                                            : project.PostPK
-                                                        )
-                                                    }
-                                                    >
-                                                    {commentingOn === project.PostPK
-                                                        ? "Cancel"
-                                                        : "Comment"}
-                                                </Button>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
+                                        </div>
+                                    </CardFooter>
+                                </Card>
+                            ))}
                         </div>
                     </ScrollArea>
                 </div>
@@ -320,15 +346,83 @@ export default function MyPostsPage() {
                     © 2023 DevConnect. All rights reserved.
                 </div>
             </footer>
+            <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ backgroundColor: '#f5f5f5', padding: '16px 24px', fontWeight: 'bold' }}>
+                    Edit Post
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        onClick={handleCloseModal}
+                        aria-label="close"
+                        sx={{ position: 'absolute', right: 8, top: 8 }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ padding: '24px' }}>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Input
+                                name="Title"
+                                value={editedPost.Title || ''}
+                                onChange={handleInputChange}
+                                placeholder="Project Title"
+                                required
+                                fullWidth
+                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Textarea
+                                name="Description"
+                                value={editedPost.Description || ''}
+                                onChange={handleInputChange}
+                                placeholder="Project Description"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Input
+                                name="Github_Link"
+                                value={editedPost.Github_Link || ''}
+                                onChange={handleInputChange}
+                                placeholder="Github Link"
+                                required
+                                fullWidth
+                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Input
+                                name="Live_Link"
+                                value={editedPost.Live_Link || ''}
+                                onChange={handleInputChange}
+                                placeholder="Live Link"
+                                required
+                                fullWidth
+                                sx={{ padding: '10px', backgroundColor: '#fafafa', borderRadius: '4px' }}
+                            />
+                        </div>
+                    </div>
+                </DialogContent>
+                <DialogActions sx={{ padding: '16px 24px', backgroundColor: '#f5f5f5' }}>
+                    <Button onClick={handleCloseModal} variant="outline">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleSaveChanges} color="primary" variant="outline">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
 
-interface HeartIconFilledProps extends SVGProps<SVGSVGElement> {
-    color?: string; // Add a color prop
+interface HeartIconProps extends SVGProps<SVGSVGElement> {
+    color?: string;
 }
 
-function HeartIcon({ color = 'red', ...props }: HeartIconFilledProps) {
+function HeartIcon({ color = 'red', ...props }: HeartIconProps) {
     return (
         <svg
             {...props}

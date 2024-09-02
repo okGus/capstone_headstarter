@@ -8,7 +8,8 @@ interface TranscriptRequest {
     likes: number;
     title: string;
     description: string;
-    link: string;
+    github_link: string;
+    live_link: string;
     userID: string;
 }
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
 
     const dynamoDbDocClient = DynamoDBDocumentClient.from(dynamoDbClient);
 
-    const { title, description, userID, likes, author, link }: TranscriptRequest = await request.json();
+    const { title, description, userID, likes, author, github_link, live_link }: TranscriptRequest = await request.json();
     const id = uuidv4();
 
     try {
@@ -37,7 +38,8 @@ export async function POST(request: Request) {
                 UserId: userID,
                 Likes: likes,
                 Author: author,
-                Link: link,
+                Github_Link: github_link,
+                Live_Link: live_link,
                 CreatedAt: new Date().toISOString(),
             }
         }));

@@ -25,7 +25,8 @@ type Post = {
     Author: string;
     Title: string;
     Description: string;
-    Link: string;
+    Github_Link: string;
+    Live_Link: string;
     Likes: number;
     UserLikes: Set<string>;
     CreatedAt: string;
@@ -34,7 +35,7 @@ type Post = {
 export default function WelcomePage() {
     const { user } = useUser();
     const [fullname, setFullname] = useState('');
-    const [newProject, setNewProject] = useState({ title: '', description: '', link: '' });
+    const [newProject, setNewProject] = useState({ title: '', description: '', github_link: '', live_link: '' });
     const [customAmount, setCustomAmount] = useState<string>('');
 
     const [isCoolingDown, setIsCoolingDown] = useState(false);
@@ -87,7 +88,7 @@ export default function WelcomePage() {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts'] });
-            setNewProject({ title: '', description: '', link: '' });
+            setNewProject({ title: '', description: '', github_link: '', live_link: '' });
         },
     });
 
@@ -268,12 +269,25 @@ export default function WelcomePage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="project-link">
-                                                Project Link
+                                                Project Github Link
                                             </Label>
                                             <Input
                                                 id="project-link"
-                                                name="link"
-                                                value={newProject.link}
+                                                name="github_link"
+                                                value={newProject.github_link}
+                                                onChange={handleInputChange}
+                                                placeholder="https://your-project-link.com"
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="project-link">
+                                                Project Live Link
+                                            </Label>
+                                            <Input
+                                                id="project-link"
+                                                name="live_link"
+                                                value={newProject.live_link}
                                                 onChange={handleInputChange}
                                                 placeholder="https://your-project-link.com"
                                                 required
@@ -316,7 +330,7 @@ export default function WelcomePage() {
                                                         {project.Description}
                                                     </p>
                                                     <a
-                                                        href={project.Link}
+                                                        href={project.Github_Link}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="text-blue-500 hover:underline"
@@ -327,7 +341,7 @@ export default function WelcomePage() {
                                                 <CardFooter className="flex justify-between">
                                                     <Button
                                                         variant="outline"
-                                                        onClick={() => window.open(project.Link, '_blank')}
+                                                        onClick={() => window.open(project.Live_Link, '_blank')}
                                                     >
                                                         Visit Site
                                                     </Button>
