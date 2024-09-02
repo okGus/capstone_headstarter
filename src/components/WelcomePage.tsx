@@ -174,7 +174,7 @@ export default function WelcomePage() {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts'] });
-            setNewProject({ title: '', description: '', flair: '', github_link: '', live_link: '', skills: [] });
+            setNewProject({ title: '', description: '', flair: 'DevShow', github_link: '', live_link: '', skills: [] });
         },
     });
 
@@ -404,7 +404,7 @@ export default function WelcomePage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="project-link">
-                                            Project Live Link
+                                            Project Live Link (Optional)
                                         </Label>
                                         <Input
                                             id="project-link"
@@ -412,7 +412,6 @@ export default function WelcomePage() {
                                             value={newProject.live_link}
                                             onChange={handleInputChange}
                                             placeholder="https://your-project-link.com"
-                                            required
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -527,12 +526,12 @@ export default function WelcomePage() {
                                                 </CardContent>
                                                 <CardFooter className="flex justify-between">
                                                     <div className="flex items-center space-x-2">
-                                                        <Button
+                                                        {project.Live_Link && <Button
                                                             variant="outline"
                                                             onClick={() => window.open(project.Live_Link, "_blank")}
                                                         >
                                                             Visit Site
-                                                        </Button>
+                                                        </Button>}
                                                         {project.Comments && project.Comments.length > 0 && (
                                                             <Button
                                                                 variant="outline"
