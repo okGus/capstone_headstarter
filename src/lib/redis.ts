@@ -52,4 +52,11 @@ const wrapRedisMethod = (methodName: RedisMethodNames) => {
 ['get', 'set', 'lrange', 'lpush', 'rpush'].forEach(method => {
     wrapRedisMethod(method as RedisMethodNames);
 });
+
+redis.ping().then(() => {
+    console.log('Successfully pinged Redis server');
+}).catch((error) => {
+    console.error('Failed to ping Redis server:', error);
+});
+
 export default redis;
