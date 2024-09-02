@@ -20,6 +20,10 @@ redis.on('connect', () => {
     console.log('Successfully connected to Redis');
 });
 
+redis.on('ready', () => {
+    console.log('Redis connection is ready');
+});
+
 // Helper type to extract method names of the Redis instance
 type RedisMethodNames = {
     [K in keyof Redis]: Redis[K] extends (...args: any[]) => any ? K : never;
