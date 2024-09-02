@@ -45,6 +45,7 @@ type Post = {
     UserLikes: Set<string>;
     CreatedAt: string;
     Comments?: Comment[];
+    Flair: string;
 };
 
 export default function WelcomePage() {
@@ -56,7 +57,7 @@ export default function WelcomePage() {
     const [commentsToShow, setCommentsToShow] = useState<Comment[]>([]);
 
     const [fullname, setFullname] = useState('');
-    const [newProject, setNewProject] = useState({ title: '', description: '', github_link: '', live_link: '' });
+    const [newProject, setNewProject] = useState({ title: '', description: '', flair: '', github_link: '', live_link: '' });
     const [customAmount, setCustomAmount] = useState<string>('');
 
     const [isCoolingDown, setIsCoolingDown] = useState(false);
@@ -146,7 +147,7 @@ export default function WelcomePage() {
             }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['posts'] });
-            setNewProject({ title: '', description: '', github_link: '', live_link: '' });
+            setNewProject({ title: '', description: '', flair: '', github_link: '', live_link: '' });
         },
     });
 
@@ -326,6 +327,35 @@ export default function WelcomePage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
+                                            <Label htmlFor="project-flairs">Project Flairs</Label>
+                                            <div className="flex space-x-2">
+                                                <div className="relative group">
+                                                    <button
+                                                        type="button"
+                                                        className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevShow' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                                        onClick={() => setNewProject({ ...newProject, flair: 'DevShow' })}
+                                                    >
+                                                        DevShow
+                                                    </button>
+                                                    <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-black text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                        Show off your development project!
+                                                    </div>
+                                                </div>
+                                                <div className="relative group">
+                                                    <button
+                                                        type="button"
+                                                        className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevHelp' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                                        onClick={() => setNewProject({ ...newProject, flair: 'DevHelp' })}
+                                                    >
+                                                        DevHelp
+                                                    </button>
+                                                    <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-black text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                        Ask for help on your development project.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
                                             <Label htmlFor="project-link">
                                                 Project Github Link
                                             </Label>
@@ -381,7 +411,10 @@ export default function WelcomePage() {
                                                         {project.Title}
                                                     </CardTitle>
                                                     <CardDescription>
-                                                        By {project.Author}
+                                                        By {project.Author} <span className="mx-1">•</span>
+                                                        <span className={`px-2 py-1 rounded-md ${project.Flair === 'DevShow' ? 'bg-blue-500 text-white' : project.Flair === 'DevHelp' ? 'bg-green-500 text-white' : ''}`}>
+                                                            {project.Flair}
+                                                        </span>
                                                     </CardDescription>
                                                 </CardHeader>
                                                 <CardContent>
