@@ -133,7 +133,7 @@ export default function LandingPage() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: 0.15,
       },
     },
   };
@@ -153,7 +153,7 @@ export default function LandingPage() {
 
   const LoadingScreen = () => (
     <motion.div
-      className="fixed inset-0 flex items-center justify-center bg-white z-50"
+      className="fixed inset-0 flex items-center justify-center bg-black z-50"
       initial="hidden"
       animate="visible"
       exit="hidden"
@@ -176,7 +176,7 @@ export default function LandingPage() {
         />
       </motion.svg>
       <motion.div
-        className="ml-4 text-2xl font-bold"
+        className="ml-4 text-2xl font-bold text-white"
         variants={loadingVariants}
       >
         {"DevConnect".split("").map((letter, index) => (
