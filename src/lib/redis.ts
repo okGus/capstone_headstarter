@@ -17,9 +17,20 @@ const redisOptions: ClusterOptions = {
             rejectUnauthorized: true,
             checkServerIdentity: (host, cert) => {
                 console.log('TLS Handshake - Host:', host);
-                console.log('TLS Handshake - Certificate Subject:', cert.subject);
-                console.log('TLS Handshake - Certificate Issuer:', cert.issuer);
-                return tls.checkServerIdentity(host, cert);
+                console.log('TLS Handshake - Certificate Subject:', JSON.stringify(cert.subject));
+                console.log('TLS Handshake - Certificate Issuer:', JSON.stringify(cert.issuer));
+                console.log('TLS Handshake - Certificate Valid From:', cert.valid_from);
+                console.log('TLS Handshake - Certificate Valid To:', cert.valid_to);
+                console.log('TLS Handshake - Certificate SubjectAltNames:', cert.subjectaltname);
+
+                // return tls.checkServerIdentity(host, cert);
+                const serverName = process.env.REDIS_URL;
+                const wildcardRegex = new RegExp(`^\\*\\.${serverName?.split('.').slice(1).join('\\.')}$`);
+                if (cert.subject.CN === serverName || wildcardRegex.test(cert.subject.CN)) {
+                    return undefined; // Certificate matches
+                } else {
+                    return new Error(`Certificate CN "${cert.subject.CN}" does not match server name "${serverName}"`);
+                }
             },
         },
         connectTimeout: 20000,
