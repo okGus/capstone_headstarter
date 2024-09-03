@@ -12,6 +12,7 @@ type Notifications = {
 
 const fetchNotifications = async (userId: string): Promise<Notifications[]> => {
     const response = await fetch(`/api/get-notifications?userId=${userId}`);
+    console.log('huh');
     if (!response.ok) {
         throw new Error('Failed to fetch notificatiosn');
     }
