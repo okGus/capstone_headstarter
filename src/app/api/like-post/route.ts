@@ -3,6 +3,7 @@ import { UpdateCommand, GetCommand, GetCommandInput, UpdateCommandInput } from '
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { NextResponse } from 'next/server';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import redis from '@/lib/redis';
 
 const dynamoDbClient = new DynamoDBClient({
   region: process.env.AWS_REGION,
@@ -15,11 +16,12 @@ const dynamoDbClient = new DynamoDBClient({
 interface LikePostRequest {
   postId: string;
   userId: string;
+  userName: string; // For Notifications
 }
 
 export async function POST(req: Request) {
   
-  const { postId, userId }: LikePostRequest = await req.json();
+  const { postId, userId, userName }: LikePostRequest = await req.json();
 
   try {
     // Step 1: Retrieve the current UserLikes set
@@ -36,6 +38,9 @@ export async function POST(req: Request) {
 
     const post = Item;
     const userLikes: Set<string> = new Set(post.UserLikes || []);
+    const postAuthorId = post.UserId;
+
+    let action: 'like' | 'unlike';
 
     // Step 2: Check if the user is already in the UserLikes set
     if (!userLikes.has(userId)) {
@@ -63,6 +68,7 @@ export async function POST(req: Request) {
       await dynamoDbClient.send(new UpdateCommand(updateUserParams));
       await dynamoDbClient.send(new UpdateCommand(updateLikesParams));
 
+      action = 'like';
     } else {
       // Step 4: If the user already liked the post, remove them from the UserLikes set and decrement the Likes count
       const updateUserParams: UpdateCommandInput = {
@@ -87,9 +93,24 @@ export async function POST(req: Request) {
 
       await dynamoDbClient.send(new UpdateCommand(updateUserParams));
       await dynamoDbClient.send(new UpdateCommand(updateLikesParams));
+      
+      action = 'unlike';
     }
 
-    return NextResponse.json("Success in liking post!", { status: 200 });
+    // Step 5: Create a notification in redis
+    if (action === 'like' && postAuthorId !== userId) {
+      const notification = JSON.stringify({
+        type: 'like',
+        postId,
+        likerId: userId,
+        likerName: userName,
+        timestamp: Date.now(),
+      });
+
+      await redis.lpush(`notifications:${postAuthorId}`, notification);
+    }
+
+    return NextResponse.json({ message: `Success in ${action === 'like' ? 'liking' : 'unliking'} post!`, action }, { status: 200 });
   } catch (error) {
     console.error('Error updating post:', error);
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });

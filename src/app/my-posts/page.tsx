@@ -43,6 +43,7 @@ type Post = {
     CreatedAt: string;
     Comments?: Comment[];
     Flair: string;
+    UserId: string;
 };
 
 export default function MyPostsPage() {
@@ -177,10 +178,25 @@ export default function MyPostsPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ postId: postId, userId: user?.id }),
+            }).then(res => {
+                if (!res.ok) throw new Error('Failed to like post');
+                return res.json();
             }),
-        onSuccess: () => {
+        onSuccess: (data: {message: string, action: 'like' | 'unlike' }, variables: string) => {
             queryClient.invalidateQueries({ queryKey: ["posts"] });
             queryClient.invalidateQueries({ queryKey: ["userPosts", user?.id] });
+
+            setLikedPosts(prev => {
+                const newSet = new Set(prev);
+                console.log('Variables in LikePostMutation',variables);
+                if (data.action === 'like') {
+                    newSet.add(variables); // variables is the postId
+                } else {
+                    newSet.delete(variables);
+                }
+
+                return newSet;
+            });
         },
     });
 
@@ -202,11 +218,11 @@ export default function MyPostsPage() {
         if (isCoolingDown) return;
         setIsCoolingDown(true);
         likePostMutation.mutate(postId);
-        if (likedPosts.has(postId)) {
-            likedPosts.delete(postId);
-        } else {
-            likedPosts.add(postId);
-        }
+        // if (likedPosts.has(postId)) {
+        //     likedPosts.delete(postId);
+        // } else {
+        //     likedPosts.add(postId);
+        // }
         setTimeout(() => setIsCoolingDown(false), 1000);
     };
 
