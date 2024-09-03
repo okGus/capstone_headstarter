@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
         const totalTime = Date.now() - start;
         console.log(`Total time to fetch and parse notifications: ${totalTime}ms`);
 
+        console.log('Sending response back to client');
         return NextResponse.json({ notifications: parsedNotifications });
     } catch (error) {
         console.error('Error fetching notifications:', error);
