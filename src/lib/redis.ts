@@ -1,16 +1,34 @@
 import assert from "assert";
-import { Redis } from "ioredis";
+import { Cluster, ClusterOptions, Redis } from "ioredis";
+import fs from "fs";
 
 assert(process.env.REDIS_URL !== undefined, 'REDIS_URL is undefined');
-const redis = new Redis(process.env.REDIS_URL, {
-    connectTimeout: 10000,
-    maxRetriesPerRequest: 3,
-    retryStrategy(times) {
+
+const redisOptions: ClusterOptions = {
+    redisOptions: {
+        tls: {
+            ca: fs.readFileSync('./AmazonRootCA1.pem'),
+            rejectUnauthorized: true
+        },
+        connectTimeout: 10000,
+        maxRetriesPerRequest: 3,
+    },
+    clusterRetryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
         console.log(`Retrying Redis connection, attemp ${times}`);
         return delay;
-    }
-});
+    },
+}
+
+const redis = new Redis.Cluster(
+    [
+        {
+            host: process.env.REDIS_URL,
+            port: 6379
+        }
+    ],
+    redisOptions
+);
 
 redis.on('error', (error) => {
     console.error('Redis error:', error);
@@ -25,32 +43,32 @@ redis.on('ready', () => {
 });
 
 // Helper type to extract method names of the Redis instance
-type RedisMethodNames = {
-    [K in keyof Redis]: Redis[K] extends (...args: any[]) => any ? K : never;
-}[keyof Redis];
+type RedisMethod = keyof Cluster;
+// type RedisMethodNames = {
+//     [K in keyof Redis]: Redis[K] extends (...args: any[]) => any ? K : never;
+// }[keyof Redis];
 
 // Wrap Redis methods with performance logging
-const wrapRedisMethod = (methodName: RedisMethodNames) => {
-    // Ensure methodName is defined and valid
-    if (methodName && typeof redis[methodName] === 'function') {
-        const originalMethod = redis[methodName] as (...args: any[]) => any;
-        redis[methodName] = function (...args: any[]) {
-            const start = Date.now();
-            const result = originalMethod.apply(redis, args);
-            if (result instanceof Promise) {
-                return result.finally(() => {
-                    console.log(`Redis ${methodName} took ${Date.now() - start}ms`);
-                });
-            }
-            console.log(`Redis ${methodName} took ${Date.now() - start}ms`);
-            return result;
-        };
+const wrapRedisMethod = (methodName: RedisMethod) => {
+    const originalMethod = redis[methodName];
+    if (typeof originalMethod === 'function') {
+      (redis as any)[methodName] = function (this: Cluster, ...args: any[]) {
+        const start = Date.now();
+        const result = (originalMethod as Function).call(this, ...args);
+        if (result instanceof Promise) {
+          return result.finally(() => {
+            console.log(`Redis ${methodName.toString()} took ${Date.now() - start}ms`);
+          });
+        }
+        console.log(`Redis ${methodName.toString()} took ${Date.now() - start}ms`);
+        return result;
+      };
     }
 };
 
 // Wrap common Redis methods
-['get', 'set', 'lrange', 'lpush', 'rpush'].forEach(method => {
-    wrapRedisMethod(method as RedisMethodNames);
+(['get', 'set', 'lrange', 'lpush', 'rpush'] as const).forEach(method => {
+    wrapRedisMethod(method);
 });
 
 redis.ping().then(() => {
