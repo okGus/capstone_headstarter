@@ -1,16 +1,19 @@
 import assert from "assert";
 import { Cluster, ClusterOptions, Redis } from "ioredis";
 import fs from "fs";
+import path from "path";
 
 assert(process.env.REDIS_URL !== undefined, 'REDIS_URL is undefined');
+
+const caCertPath = path.join(process.cwd(), 'AmazonRootCA1.pem');
 
 const redisOptions: ClusterOptions = {
     redisOptions: {
         tls: {
-            ca: fs.readFileSync('./AmazonRootCA1.pem'),
+            ca: fs.readFileSync(caCertPath),
             rejectUnauthorized: true
         },
-        connectTimeout: 10000,
+        connectTimeout: 20000,
         maxRetriesPerRequest: 3,
     },
     clusterRetryStrategy: (times) => {
@@ -35,7 +38,7 @@ redis.on('error', (error) => {
 });
 
 redis.on('connect', () => {
-    console.log('Successfully connected to Redis');
+    console.log('Successfully connected to Redis cluster');
 });
 
 redis.on('ready', () => {
@@ -72,9 +75,9 @@ const wrapRedisMethod = (methodName: RedisMethod) => {
 });
 
 redis.ping().then(() => {
-    console.log('Successfully pinged Redis server');
+    console.log('Successfully pinged Redis cluster');
 }).catch((error) => {
-    console.error('Failed to ping Redis server:', error);
+    console.error('Failed to ping Redis cluster:', error);
 });
 
 export default redis;
