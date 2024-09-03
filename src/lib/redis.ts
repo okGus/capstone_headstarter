@@ -1,3 +1,5 @@
+// this for production
+
 import assert from "assert";
 import { Cluster, ClusterOptions, Redis } from "ioredis";
 import fs from "fs";
@@ -38,7 +40,7 @@ const redisOptions: ClusterOptions = {
     },
     clusterRetryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000);
-        console.log(`Retrying Redis connection, attemp ${times}`);
+        console.log(`Retrying Redis connection, attempt ${times}`);
         return delay;
     },
 };
