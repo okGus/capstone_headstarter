@@ -49,6 +49,7 @@ redis.on('error', (error) => {
     if (error.code) {
         console.error('Error code:', error.code);
     }
+    console.error('Error stack:', error.stack);
 });
 
 redis.on('connect', () => {
@@ -60,7 +61,17 @@ redis.on('ready', () => {
 });
 
 redis.on('node error', (error,  node) => {
-    console.error(`Redis node error on ${node.options.host}:${node.options.port}`, error);
+    console.error('Redis node error:');
+    console.error('Error:', error);
+    if (error.code) {
+        console.error('Error code:', error.code);
+    }
+    console.error('Error stack:', error.stack);
+    if (node) {
+        console.error(`Node: ${node.options?.host}:${node.options?.port}`);
+    } else {
+        console.error('Node information not available');
+    }
 });
 
 // Helper type to extract method names of the Redis instance
