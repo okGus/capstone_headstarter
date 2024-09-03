@@ -2,16 +2,25 @@ import assert from "assert";
 import { Cluster, ClusterOptions, Redis } from "ioredis";
 import fs from "fs";
 import path from "path";
+import tls from "tls";
 
 assert(process.env.REDIS_URL !== undefined, 'REDIS_URL is undefined');
 
 const caCertPath = path.join(process.cwd(), 'AmazonRootCA1.pem');
+console.log('CA Certificate Path:', caCertPath);
+console.log('CA Certificate exists:', fs.existsSync(caCertPath));
 
 const redisOptions: ClusterOptions = {
     redisOptions: {
         tls: {
             ca: fs.readFileSync(caCertPath),
-            rejectUnauthorized: true
+            rejectUnauthorized: true,
+            checkServerIdentity: (host, cert) => {
+                console.log('TLS Handshake - Host:', host);
+                console.log('TLS Handshake - Certificate Subject:', cert.subject);
+                console.log('TLS Handshake - Certificate Issuer:', cert.issuer);
+                return tls.checkServerIdentity(host, cert);
+            },
         },
         connectTimeout: 20000,
         maxRetriesPerRequest: 3,
@@ -21,7 +30,9 @@ const redisOptions: ClusterOptions = {
         console.log(`Retrying Redis connection, attemp ${times}`);
         return delay;
     },
-}
+};
+
+console.log('Connecting to Redis URL:', process.env.REDIS_URL);
 
 const redis = new Redis.Cluster(
     [
@@ -35,6 +46,9 @@ const redis = new Redis.Cluster(
 
 redis.on('error', (error) => {
     console.error('Redis error:', error);
+    if (error.code) {
+        console.error('Error code:', error.code);
+    }
 });
 
 redis.on('connect', () => {
@@ -43,6 +57,10 @@ redis.on('connect', () => {
 
 redis.on('ready', () => {
     console.log('Redis connection is ready');
+});
+
+redis.on('node error', (error,  node) => {
+    console.error(`Redis node error on ${node.options.host}:${node.options.port}`, error);
 });
 
 // Helper type to extract method names of the Redis instance
