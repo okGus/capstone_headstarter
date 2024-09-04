@@ -48,7 +48,8 @@ export default function LandingPage() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const index = Array.from(sections).indexOf(entry.target);
+            const targetElement = entry.target as HTMLElement;
+            const index = Array.from(sections).indexOf(targetElement);
             setCurrentSection(index);
           }
         });

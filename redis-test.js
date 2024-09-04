@@ -5,7 +5,7 @@ console.log('Starting Redis Cluster connection test...');
 const redis = new Redis.Cluster(
   [
     {
-      host: 'clustercfg.notificationredis.x44a67.use1.cache.amazonaws.com',
+      host: process.env.REDIS_URL,
       port: 6379
     }
   ],
