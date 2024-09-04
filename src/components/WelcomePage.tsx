@@ -305,46 +305,54 @@ export default function WelcomePage() {
     const sortedPosts = posts?.sort((a, b) => b.Likes - a.Likes);
 
     return (
-        <div className="flex flex-col min-h-screen">
-            <header className="px-4 lg:px-6 h-14 flex items-center border-b">
-                <span className="font-semibold text-lg">DevConnect</span>
-                <nav className="ml-auto flex gap-4 sm:gap-6">
-                    <Button variant="ghost" onClick={() => router.push('/')}>
+        <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
+            <header className="px-4 lg:px-6 h-14 flex items-center border-b border-gray-700 bg-gray-800">
+                <span className="font-semibold text-lg text-purple-400">DevConnect</span>
+                <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
+                    <Button
+                        variant="ghost"
+                        onClick={() => router.push('/')}
+                        className="text-gray-300 hover:bg-purple-700 hover:text-white"
+                    >
                         Home
                     </Button>
                     <Button
                         variant="ghost"
                         onClick={() => router.push('/my-posts')}
+                        className="text-gray-300 hover:bg-purple-700 hover:text-white"
                     >
-                        {'My Projects'}
+                        My Projects
                     </Button>
-                    {user && <Notifications userId={user.id} />}
-                    {/* <Button variant="ghost">Notifications</Button> */}
+                    {user && (
+                        <Button className="focus:outline-none text-gray-300 hover:bg-purple-700 hover:text-white">
+                            <Notifications userId={user.id} />
+                        </Button>
+                    )}
+                    <UserButton />
                 </nav>
-                <UserButton />
             </header>
-            <main className="flex-1 py-6 px-4 md:px-6">
+            <main className="flex-1 py-6 px-4 md:px-6 bg-gray-900">
                 <div className="max-w-4xl mx-auto space-y-8">
-                    <h1 className="text-3xl font-bold">
-                        Welcome back, {fullname}!
-                    </h1>
+                <h1 className="text-3xl font-bold text-purple-500 bg-gray-800 p-4 rounded-lg">
+                    Welcome back, {fullname}!
+                </h1>
 
                     <Tabs defaultValue="create" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="create">
+                        <TabsList className="grid w-full grid-cols-2 bg-gray-800">
+                            <TabsTrigger value="create" className="text-gray-300 data-[state=active]:bg-purple-700 data-[state=active]:text-white">
                                 Create Project Post
                             </TabsTrigger>
-                            <TabsTrigger value="view">
+                            <TabsTrigger value="view" className="text-gray-300 data-[state=active]:bg-purple-700 data-[state=active]:text-white">
                                 View Project Posts
                             </TabsTrigger>
                         </TabsList>
                         <TabsContent value="create">
-                            <Card>
+                            <Card className="bg-gray-800 border-gray-700">
                                 <CardHeader>
-                                    <CardTitle>
+                                    <CardTitle className="text-purple-300">
                                         Create a New Project Post
                                     </CardTitle>
-                                    <CardDescription>
+                                    <CardDescription className="text-gray-400">
                                         Share your latest work with the
                                         community
                                     </CardDescription>
@@ -352,7 +360,7 @@ export default function WelcomePage() {
                                 <form onSubmit={handleSubmit}>
                                 <CardContent className="space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="project-title">
+                                        <Label htmlFor="project-title" className="text-gray-300">
                                             Project Title
                                         </Label>
                                         <Input
@@ -362,10 +370,11 @@ export default function WelcomePage() {
                                             onChange={handleInputChange}
                                             placeholder="Enter your project title"
                                             required
+                                            className="bg-gray-700 text-gray-300 border-gray-600"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="project-description">
+                                        <Label htmlFor="project-description" className="text-gray-300">
                                             Project Description
                                         </Label>
                                         <Textarea
@@ -375,39 +384,40 @@ export default function WelcomePage() {
                                             onChange={handleInputChange}
                                             placeholder="Describe your project"
                                             required
+                                            className="bg-gray-700 text-gray-300 border-gray-600"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="project-flairs">Project Flairs</Label>
+                                        <Label htmlFor="project-flairs" className="text-gray-300">Project Flairs</Label>
                                         <div className="flex space-x-2">
                                             <div className="relative group">
                                                 <button
                                                     type="button"
-                                                    className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevShow' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                                    className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevShow' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}
                                                     onClick={() => setNewProject({ ...newProject, flair: 'DevShow' })}
                                                 >
                                                     DevShow
                                                 </button>
-                                                <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-black text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-gray-800 text-gray-300 text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                     Show off your development project!
                                                 </div>
                                             </div>
                                             <div className="relative group">
                                                 <button
                                                     type="button"
-                                                    className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevHelp' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                                    className={`px-4 py-2 border rounded-md ${newProject.flair === 'DevHelp' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300'}`}
                                                     onClick={() => setNewProject({ ...newProject, flair: 'DevHelp' })}
                                                 >
                                                     DevHelp
                                                 </button>
-                                                <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-black text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <div className="absolute left-0 top-full mt-1 w-32 p-2 bg-gray-800 text-gray-300 text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                                     Ask for help on your development project.
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="project-link">
+                                        <Label htmlFor="project-link" className="text-gray-300">
                                             Project Github Link
                                         </Label>
                                         <Input
@@ -417,10 +427,11 @@ export default function WelcomePage() {
                                             onChange={handleInputChange}
                                             placeholder="https://your-project-link.com"
                                             required
+                                            className="bg-gray-700 text-gray-300 border-gray-600"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="project-link">
+                                        <Label htmlFor="project-link" className="text-gray-300">
                                             Project Live Link (Optional)
                                         </Label>
                                         <Input
@@ -429,10 +440,11 @@ export default function WelcomePage() {
                                             value={newProject.live_link}
                                             onChange={handleInputChange}
                                             placeholder="https://your-project-link.com"
+                                            className="bg-gray-700 text-gray-300 border-gray-600"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="project-skills">Project Skills</Label>
+                                        <Label htmlFor="project-skills" className="text-gray-300">Project Skills</Label>
                                         <div className="space-y-2">
                                             <Input
                                                 id="project-skills"
@@ -441,16 +453,16 @@ export default function WelcomePage() {
                                                 onChange={(e) => setSkillInput(e.target.value)}
                                                 placeholder="Add a skill"
                                                 maxLength={50}
-                                                className="w-full"
+                                                className="w-full bg-gray-700 text-gray-300 border-gray-600"
                                                 onKeyDown={handleKeyDown}
                                             />
                                             <div className="flex flex-wrap gap-2 mt-2">
                                                 {newProject.skills.map((skill, index) => (
-                                                    <div key={index} className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-full">
+                                                    <div key={index} className="flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-full">
                                                         <span>{skill}</span>
                                                         <button
                                                             type="button"
-                                                            className="text-red-500"
+                                                            className="text-red-300"
                                                             onClick={() => removeSkill(index)}
                                                         >
                                                             &times;
@@ -461,7 +473,7 @@ export default function WelcomePage() {
                                             {newProject.skills.length < 5 && (
                                                 <button
                                                     type="button"
-                                                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md"
+                                                    className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
                                                     onClick={addSkill}
                                                 >
                                                     Add Skill
@@ -471,7 +483,7 @@ export default function WelcomePage() {
                                     </div>
                                 </CardContent>
                                     <CardFooter>
-                                        <Button type="submit">
+                                        <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white">
                                             Create Project Post
                                         </Button>
                                     </CardFooter>
@@ -479,33 +491,33 @@ export default function WelcomePage() {
                             </Card>
                         </TabsContent>
                         <TabsContent value="view">
-                            <div className="overflow-auto display-block overflow-scroll w-full">
-                            <ScrollArea className="overflow-auto w-full whitespace-nowrap h-[600px] rounded-md border p-4 min-w-max">
+                            <div className="overflow-auto display-block overflow-scroll overflow-hidden w-full" style={{overflow: 'hidden'}}>
+                            <ScrollArea className="overflow-auto w-full whitespace-nowrap h-[600px] rounded-md border border-gray-700 p-4 min-w-max bg-gray-800">
                                 <div className="space-y-8">
                                     {isLoading && (
-                                        <div>Loading projects...</div>
+                                        <div className="text-gray-300">Loading projects...</div>
                                     )}
                                     {error && (
-                                        <div>
+                                        <div className="text-red-400">
                                             An error occurred:{' '}
                                             {(error as Error).message}
                                         </div>
                                     )}
                                     {sortedPosts &&
                                         sortedPosts.map((project) => (
-                                            <Card key={project.PostPK}>
+                                            <Card key={project.PostPK} className="bg-gray-800 border-gray-700">
                                                 <CardHeader>
-                                                    <CardTitle>
+                                                    <CardTitle className="text-purple-300">
                                                         {project.Title}
                                                     </CardTitle>
-                                                    <CardDescription>
+                                                    <CardDescription className="text-gray-400">
                                                         By {project.Author} <span className="mx-1">•</span>
-                                                        <span className={`px-2 py-1 rounded-md ${project.Flair === 'DevShow' ? 'bg-blue-500 text-white' : project.Flair === 'DevHelp' ? 'bg-green-500 text-white' : ''}`}>
+                                                        <span className={`px-2 py-1 rounded-md ${project.Flair === 'DevShow' ? 'bg-blue-600 text-white' : project.Flair === 'DevHelp' ? 'bg-green-600 text-white' : ''}`}>
                                                             {project.Flair}
                                                         </span>
                                                     </CardDescription>
                                                 </CardHeader>
-                                                <CardContent>
+                                                <CardContent className="text-gray-300">
                                                     <p className="mb-2">
                                                         {project.Description}
                                                     </p>
@@ -513,15 +525,14 @@ export default function WelcomePage() {
                                                         href={project.Github_Link}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="text-blue-500 hover:underline"
+                                                        className="text-purple-400 hover:underline"
                                                     >
                                                         View Project
                                                     </a>
-                                                    {/* Skills Display */}
                                                     {project.Skills && project.Skills.length > 0 && (
                                                         <div className="mt-2 flex flex-wrap gap-2">
                                                             {project.Skills.map((skill, index) => (
-                                                                <span key={index} className="px-2 py-1 bg-gray-200 text-gray-800 rounded-md">
+                                                                <span key={index} className="px-2 py-1 bg-gray-700 text-gray-300 rounded-md">
                                                                     {skill}
                                                                 </span>
                                                             ))}
@@ -533,9 +544,9 @@ export default function WelcomePage() {
                                                                 value={newComment}
                                                                 onChange={(e) => setNewComment(e.target.value)}
                                                                 placeholder="Write a comment..."
-                                                                className="mb-2"
+                                                                className="mb-2 bg-gray-700 text-gray-300 border-gray-600"
                                                             />
-                                                            <Button onClick={() => handleCommentSubmit(project.PostPK)}>
+                                                            <Button onClick={() => handleCommentSubmit(project.PostPK)} className="bg-purple-600 hover:bg-purple-700 text-white">
                                                                 Submit Comment
                                                             </Button>
                                                         </div>
@@ -546,6 +557,7 @@ export default function WelcomePage() {
                                                         {project.Live_Link && <Button
                                                             variant="outline"
                                                             onClick={() => window.open(project.Live_Link, "_blank")}
+                                                            className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white font-bold"
                                                         >
                                                             Visit Site
                                                         </Button>}
@@ -553,6 +565,7 @@ export default function WelcomePage() {
                                                             <Button
                                                                 variant="outline"
                                                                 onClick={() => handleViewComments(project.Comments)}
+                                                                className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white font-bold"
                                                             >
                                                                 View Comments ({project.Comments.length})
                                                             </Button>
@@ -563,10 +576,11 @@ export default function WelcomePage() {
                                                             variant="ghost"
                                                             size="icon"
                                                             onClick={() => likePost(project.PostPK)}
+                                                            className="text-gray-300 hover:bg-purple-700 hover:text-white"
                                                         >
                                                             {likedPosts.has(project.PostPK) ? <HeartIcon className="h-4 w-4" color='red' /> : <HeartIcon className="h-4 w-4" color='none' />}
                                                         </Button>
-                                                        <span>
+                                                        <span className="text-gray-300">
                                                             {project.Likes} likes
                                                         </span>
                                                         <Button
@@ -576,6 +590,7 @@ export default function WelcomePage() {
                                                                     commentingOn === project.PostPK ? null : project.PostPK
                                                                 )
                                                             }
+                                                            className="text-gray-300 hover:bg-purple-700 hover:text-white"
                                                         >
                                                             {commentingOn === project.PostPK ? "Cancel" : "Comment"}
                                                         </Button>
@@ -589,43 +604,45 @@ export default function WelcomePage() {
                         </TabsContent>
                     </Tabs>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Support DevConnect</CardTitle>
-                            <CardDescription>
-                                Your donation helps us maintain and improve the platform
+                    <Card className="bg-gray-800 text-white shadow-lg border-black">
+                        <CardHeader className="border-b border-purple-700">
+                            <CardTitle className="text-2xl font-bold text-purple-300">Support DevConnect</CardTitle>
+                            <CardDescription className="text-gray-300">
+                            Your donation helps us maintain and improve the platform
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-6">
                             <div className="flex flex-wrap gap-4">
-                                {[5, 10, 20, 50, 100].map((amount) => (
-                                    <Button
-                                        key={amount}
-                                        variant="outline"
-                                        onClick={() => handleDonate(amount)}
-                                    >
-                                        Donate ${amount}
-                                    </Button>
-                                ))}
-                                <div className="flex items-center space-x-2">
-                                    <Input
-                                        type="number"
-                                        placeholder="Custom amount"
-                                        className="w-32"
-                                        min="1"
-                                        step="1"
-                                        value={customAmount}
-                                        onChange={(e) =>
-                                            setCustomAmount(e.target.value)
-                                        }
-                                    />
-                                    <Button onClick={handleCustomDonate}>
-                                        Donate
-                                    </Button>
-                                </div>
+                            {[5, 10, 20, 50, 100].map((amount) => (
+                                <Button
+                                key={amount}
+                                variant="outline"
+                                onClick={() => handleDonate(amount)}
+                                className="bg-purple-700 text-white border-purple-500 hover:bg-purple-600"
+                                >
+                                Donate ${amount}
+                                </Button>
+                            ))}
+                            <div className="flex items-center space-x-2">
+                                <Input
+                                type="number"
+                                placeholder="Custom amount"
+                                className="w-32 bg-gray-700 text-white border-purple-500 focus:ring-purple-400"
+                                min="1"
+                                step="1"
+                                value={customAmount}
+                                onChange={(e) => setCustomAmount(e.target.value)}
+                                />
+                                <Button 
+                                onClick={handleCustomDonate}
+                                className="bg-purple-700 text-white hover:bg-purple-600"
+                                >
+                                Donate
+                                </Button>
+                            </div>
                             </div>
                         </CardContent>
-                    </Card>
+                        </Card>
                 </div>
             </main>
             <footer className="border-t py-4 px-4 md:px-6">

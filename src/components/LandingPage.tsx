@@ -58,9 +58,10 @@ export default function LandingPage() {
       },
       {
         root: null,
-        rootMargin: isSafari ? "0% 0px -50% 0px" : "15% 0px -95% 0px", // Safari vs Chrome settings
-        threshold: isSafari ? 0.01 : 0.2, // Safari vs Chrome settings
+        rootMargin: isSafari ? "0% 0px -50% 0px" : "0px 0px -50% 0px", // Safari vs Chrome settings
+        threshold: isSafari ? 0.01 : [0, 0.1, 0.5, 1.0], // Safari vs Chrome settings
       }
+      
     );
 
     sections.forEach((section) => {
