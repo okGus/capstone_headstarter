@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { FormEvent, JSX, SVGProps, useState, useEffect } from "react";
+import { FormEvent, JSX, SVGProps, useState, useEffect, useRef } from "react";
 import {
   motion,
   AnimatePresence,
@@ -67,6 +67,14 @@ export default function LandingPage() {
     sections.forEach((section) => {
       observer.observe(section);
     });
+  };
+
+  const targetSectionRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSectionLearnMore = () => {
+      if (targetSectionRef.current) {
+          targetSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -327,12 +335,15 @@ export default function LandingPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.6 }}
                     >
+                      <Link href="/sign-up">
                       <Button className="bg-purple-700 text-white hover:bg-purple-900">
                         Get Started
                       </Button>
+                      </Link>
                       <Button
                         variant="outline"
                         className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
+                        onClick={scrollToSectionLearnMore}
                       >
                         Learn More
                       </Button>
@@ -425,7 +436,7 @@ export default function LandingPage() {
                 initial="hidden"
                 animate={currentSection === 2 ? "visible" : "exit"}
               >
-                <div className="container px-4 md:px-6">
+                <div className="container px-4 md:px-6" ref={targetSectionRef}>
                   <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8 text-white">
                     How It Works
                   </h2>
