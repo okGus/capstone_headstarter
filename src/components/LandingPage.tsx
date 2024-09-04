@@ -56,7 +56,7 @@ export default function LandingPage() {
       },
       {
         root: null,
-        rootMargin: "15% 0px -95% 0px",
+        rootMargin: "30% 0px -30% 0px",
         threshold: 0.2,
       }
     );
@@ -352,7 +352,7 @@ export default function LandingPage() {
                   <motion.div variants={sectionVariants}>
                     <Card className="bg-gray-800 border border-gray-700">
                       <CardHeader>
-                        <CardTitle className="text-purple-300">Eco-friendly Smart Home</CardTitle>
+                        <CardTitle className="text-purple-500">Eco-friendly Smart Home</CardTitle>
                         <CardDescription className="text-gray-400">
                           A sustainable living project
                         </CardDescription>
@@ -375,7 +375,7 @@ export default function LandingPage() {
                   <motion.div variants={sectionVariants}>
                     <Card className="bg-gray-800 border border-gray-700">
                       <CardHeader>
-                        <CardTitle className="text-purple-300">AI-powered Education Platform</CardTitle>
+                        <CardTitle className="text-purple-500">AI-powered Education Platform</CardTitle>
                         <CardDescription className="text-gray-400">
                           Revolutionizing online learning
                         </CardDescription>
@@ -398,7 +398,7 @@ export default function LandingPage() {
                   <motion.div variants={sectionVariants}>
                     <Card className="bg-gray-800 border border-gray-700">
                       <CardHeader>
-                        <CardTitle className="text-purple-300">Community Marketplace App</CardTitle>
+                        <CardTitle className="text-purple-500">Community Marketplace App</CardTitle>
                         <CardDescription className="text-gray-400">
                           Connecting local businesses and consumers
                         </CardDescription>
@@ -431,7 +431,7 @@ export default function LandingPage() {
               animate={currentSection === 2 ? "visible" : "exit"}
             >
               <div className="container px-4 md:px-6">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8 text-purple-500">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8 text-white">
                   How It Works
                 </h2>
                 <motion.div
@@ -478,7 +478,7 @@ export default function LandingPage() {
               <motion.section
                 key="join-waitlist"
                 id="join-waitlist"
-                className="w-full py-12 md:py-24 lg:py-32"
+                className="w-full py-12 md:py-24 lg:py-32 bg-black"
                 variants={sectionVariants}
                 initial="hidden"
                 animate={currentSection === 3 ? "visible" : "exit"}
@@ -486,12 +486,11 @@ export default function LandingPage() {
                 <div className="container px-4 md:px-6">
                   <div className="flex flex-col items-center space-y-4 text-center">
                     <div className="space-y-2">
-                      <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                      <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-purple-500">
                         Join the Waitlist
                       </h2>
-                      <p className="mx-auto max-w-[600px] text-gray-500 md:text-xl">
-                        Be among the first to experience our platform. Sign up
-                        for early access and exclusive updates.
+                      <p className="mx-auto max-w-[600px] text-gray-400 md:text-xl">
+                        Be among the first to experience our platform. Sign up for early access and exclusive updates.
                       </p>
                     </div>
                     <div className="w-full max-w-sm space-y-2">
@@ -504,19 +503,22 @@ export default function LandingPage() {
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
+                          className="bg-gray-800 text-white placeholder-gray-400"
                         />
                         <Input
                           placeholder="Your Email"
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
+                          className="bg-gray-800 text-white placeholder-gray-400"
                         />
-                        <Button type="submit">Join Waitlist</Button>
+                        <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700">
+                          Join Waitlist
+                        </Button>
                       </form>
-                      {message && <p>{message}</p>}
-                      <p className="text-xs text-gray-500">
-                        We respect your privacy and will never share your
-                        information.
+                      {message && <p className="text-gray-300">{message}</p>}
+                      <p className="text-xs text-gray-400">
+                        We respect your privacy and will never share your information.
                       </p>
                     </div>
                   </div>
