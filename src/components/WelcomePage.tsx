@@ -492,8 +492,8 @@ export default function WelcomePage() {
                         </TabsContent>
                         <TabsContent value="view">
                             <div className="overflow-auto display-block overflow-scroll w-full">
-                            <ScrollArea className="overflow-auto w-full whitespace-nowrap h-[600px] rounded-md border border-gray-700 p-4 min-w-max bg-gray-800">
-                                <div className="space-y-8">
+                            <ScrollArea className="overflow-auto w-full h-[600px] rounded-md border border-gray-700 p-4 bg-gray-800">
+                                <div className="space-y-8 w-full">
                                     {isLoading && (
                                         <div className="text-gray-300">Loading projects...</div>
                                     )}
