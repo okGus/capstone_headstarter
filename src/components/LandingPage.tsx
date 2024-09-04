@@ -361,79 +361,55 @@ export default function LandingPage() {
                     <motion.div variants={sectionVariants}>
                       <Card className="bg-gray-800 border border-gray-700">
                         <CardHeader>
-                          <CardTitle className="text-purple-500">
+                          <CardTitle className="text-purple-500 text-center">
                             Eco-friendly Smart Home
                           </CardTitle>
-                          <CardDescription className="text-gray-400">
+                          <CardDescription className="text-gray-400 text-center">
                             A sustainable living project
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-white">
+                          <p className="text-white text-center">
                             Innovative smart home solutions focusing on energy
                             efficiency and sustainability.
                           </p>
                         </CardContent>
-                        <CardFooter>
-                          <Button
-                            variant="outline"
-                            className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
-                          >
-                            View Project
-                          </Button>
-                        </CardFooter>
                       </Card>
                     </motion.div>
                     <motion.div variants={sectionVariants}>
                       <Card className="bg-gray-800 border border-gray-700">
                         <CardHeader>
-                          <CardTitle className="text-purple-500">
+                          <CardTitle className="text-purple-500 text-center">
                             AI-powered Education Platform
                           </CardTitle>
-                          <CardDescription className="text-gray-400">
+                          <CardDescription className="text-gray-400 text-center">
                             Revolutionizing online learning
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-white">
+                          <p className="text-white text-center">
                             An adaptive learning platform that uses AI to
                             personalize education for each student.
                           </p>
                         </CardContent>
-                        <CardFooter>
-                          <Button
-                            variant="outline"
-                            className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
-                          >
-                            View Project
-                          </Button>
-                        </CardFooter>
                       </Card>
                     </motion.div>
                     <motion.div variants={sectionVariants}>
                       <Card className="bg-gray-800 border border-gray-700">
                         <CardHeader>
-                          <CardTitle className="text-purple-500">
+                          <CardTitle className="text-purple-500 text-center">
                             Community Marketplace App
                           </CardTitle>
-                          <CardDescription className="text-gray-400">
+                          <CardDescription className="text-gray-400 text-center">
                             Connecting local businesses and consumers
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-white">
+                          <p className="text-white text-center">
                             A mobile app that promotes local commerce and
                             strengthens community bonds.
                           </p>
                         </CardContent>
-                        <CardFooter>
-                          <Button
-                            variant="outline"
-                            className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
-                          >
-                            View Project
-                          </Button>
-                        </CardFooter>
                       </Card>
                     </motion.div>
                   </motion.div>
@@ -484,9 +460,9 @@ export default function LandingPage() {
                         variants={sectionVariants}
                       >
                         <div className="mb-4 rounded-full bg-gray-700 p-4">
-                          <step.icon className="h-6 w-6 text-purple-900" />
+                          <step.icon className="h-6 w-6 text-purple-500" />
                         </div>
-                        <h3 className="text-xl font-bold text-purple-900">
+                        <h3 className="text-xl font-bold text-purple-500">
                           {step.title}
                         </h3>
                         <p className="text-gray-300">{step.description}</p>
