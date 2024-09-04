@@ -333,7 +333,7 @@ export default function WelcomePage() {
             </header>
             <main className="flex-1 py-6 px-4 md:px-6 bg-gray-900">
                 <div className="max-w-4xl mx-auto space-y-8">
-                <h1 className="text-3xl font-bold text-purple-500 bg-gray-800 p-4 rounded-lg">
+                <h1 className="text-3xl font-bold bg-gray-800 p-4 rounded-lg">
                     Welcome back, {fullname}!
                 </h1>
 
