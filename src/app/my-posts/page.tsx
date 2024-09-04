@@ -385,129 +385,209 @@ export default function MyPostsPage() {
                         </div>
                     </ScrollArea>
                     <Dialog 
-                open={openModal} 
-                onClose={handleCloseModal} 
-                maxWidth="sm" 
+                        open={openModal} 
+                        onClose={handleCloseModal} 
+                        maxWidth="sm" 
+                        fullWidth
+                        PaperProps={{
+                            style: {
+                                backgroundColor: '#1F2937', // dark background
+                                color: '#E5E7EB', // light text
+                            },
+                        }}
+                    >
+                        <DialogTitle sx={{ 
+                            backgroundColor: '#111827', 
+                            color: '#E5E7EB',
+                            padding: '16px 24px', 
+                            fontWeight: 'bold',
+                            borderBottom: '1px solid #374151'
+                        }}>
+                            Edit Post
+                            <IconButton
+                                edge="end"
+                                color="inherit"
+                                onClick={handleCloseModal}
+                                aria-label="close"
+                                sx={{ 
+                                    position: 'absolute', 
+                                    right: 8, 
+                                    top: 8,
+                                    color: '#9CA3AF'
+                                }}
+                            >
+                                <CloseIcon />
+                            </IconButton>
+                        </DialogTitle>
+                        <DialogContent dividers sx={{ padding: '24px', backgroundColor: '#1F2937' }}>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Input
+                                        name="Title"
+                                        value={editedPost.Title || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="Project Title"
+                                        required
+                                        fullWidth
+                                        sx={{ 
+                                            padding: '10px', 
+                                            backgroundColor: '#374151', 
+                                            borderRadius: '4px',
+                                            color: '#E5E7EB',
+                                            '&:hover': {
+                                                backgroundColor: '#4B5563'
+                                            },
+                                            '&:focus': {
+                                                backgroundColor: '#4B5563',
+                                                boxShadow: '0 0 0 2px #8B5CF6'
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Textarea
+                                        name="Description"
+                                        value={editedPost.Description || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="Project Description"
+                                        required
+                                        className="bg-gray-700 text-white border-purple-500 focus:ring-purple-400"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Input
+                                        name="Github_Link"
+                                        value={editedPost.Github_Link || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="Github Link"
+                                        required
+                                        fullWidth
+                                        sx={{ 
+                                            padding: '10px', 
+                                            backgroundColor: '#374151', 
+                                            borderRadius: '4px',
+                                            color: '#E5E7EB',
+                                            '&:hover': {
+                                                backgroundColor: '#4B5563'
+                                            },
+                                            '&:focus': {
+                                                backgroundColor: '#4B5563',
+                                                boxShadow: '0 0 0 2px #8B5CF6'
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Input
+                                        name="Live_Link"
+                                        value={editedPost.Live_Link || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="Live Link"
+                                        required
+                                        fullWidth
+                                        sx={{ 
+                                            padding: '10px', 
+                                            backgroundColor: '#374151', 
+                                            borderRadius: '4px',
+                                            color: '#E5E7EB',
+                                            '&:hover': {
+                                                backgroundColor: '#4B5563'
+                                            },
+                                            '&:focus': {
+                                                backgroundColor: '#4B5563',
+                                                boxShadow: '0 0 0 2px #8B5CF6'
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </DialogContent>
+                        <DialogActions sx={{ padding: '16px 24px', backgroundColor: '#111827' }}>
+                            <Button onClick={handleCloseModal} variant="outline" className="bg-gray-700 text-white hover:bg-gray-600">
+                                Cancel
+                            </Button>
+                            <Button onClick={handleSaveChanges} variant="outline" className="bg-purple-700 text-white hover:bg-purple-600">
+                                Save
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
+                    <Dialog
+                open={commentsModalOpen}
+                onClose={() => setCommentsModalOpen(false)}
+                maxWidth="sm"
                 fullWidth
                 PaperProps={{
                     style: {
-                        backgroundColor: '#1F2937', // dark background
-                        color: '#E5E7EB', // light text
+                        backgroundColor: '#1F2937', // Dark background for the dialog
+                        color: '#E5E7EB', // Light text color
                     },
                 }}
             >
-                <DialogTitle sx={{ 
-                    backgroundColor: '#111827', 
-                    color: '#E5E7EB',
-                    padding: '16px 24px', 
-                    fontWeight: 'bold',
-                    borderBottom: '1px solid #374151'
-                }}>
-                    Edit Post
+                <DialogTitle
+                    sx={{
+                        backgroundColor: '#111827', // Darker header background
+                        color: '#E5E7EB', // Light text color
+                        padding: '16px 24px',
+                        fontWeight: 'bold',
+                        borderBottom: '1px solid #6D28D9', // Purple border
+                        position: 'relative', // For absolute positioning of the close button
+                    }}
+                >
+                    Comments
                     <IconButton
                         edge="end"
                         color="inherit"
-                        onClick={handleCloseModal}
+                        onClick={() => setCommentsModalOpen(false)}
                         aria-label="close"
-                        sx={{ 
-                            position: 'absolute', 
-                            right: 8, 
+                        sx={{
+                            position: 'absolute',
+                            right: 8,
                             top: 8,
-                            color: '#9CA3AF'
+                            color: '#D4A5A5', // Light pink color for the icon
+                            '&:hover': {
+                                backgroundColor: '#6D28D9', // Purple background on hover
+                            },
                         }}
                     >
                         <CloseIcon />
                     </IconButton>
                 </DialogTitle>
-                <DialogContent dividers sx={{ padding: '24px', backgroundColor: '#1F2937' }}>
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Input
-                                name="Title"
-                                value={editedPost.Title || ''}
-                                onChange={handleInputChange}
-                                placeholder="Project Title"
-                                required
-                                fullWidth
-                                sx={{ 
-                                    padding: '10px', 
-                                    backgroundColor: '#374151', 
-                                    borderRadius: '4px',
-                                    color: '#E5E7EB',
-                                    '&:hover': {
-                                        backgroundColor: '#4B5563'
-                                    },
-                                    '&:focus': {
-                                        backgroundColor: '#4B5563',
-                                        boxShadow: '0 0 0 2px #8B5CF6'
-                                    }
-                                }}
-                            />
+                <DialogContent
+                    dividers
+                    sx={{
+                        padding: '24px',
+                        backgroundColor: '#1F2937', // Dark background for content
+                        color: '#E5E7EB', // Light text color
+                    }}
+                >
+                    {commentsToShow.length > 0 ? (
+                        <div>
+                            {commentsToShow.map((comment) => (
+                                <div key={comment.CommentId} className="bg-gray-800 p-2 rounded mb-2">
+                                    <p className="text-sm font-semibold text-purple-300">{comment.UserName}</p>
+                                    <p className="text-sm">{comment.Content}</p>
+                                    <p className="text-xs text-gray-500">
+                                        {new Date(comment.CreatedAt).toLocaleString()}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
-                        <div className="space-y-2">
-                            <Textarea
-                                name="Description"
-                                value={editedPost.Description || ''}
-                                onChange={handleInputChange}
-                                placeholder="Project Description"
-                                required
-                                className="bg-gray-700 text-white border-purple-500 focus:ring-purple-400"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Input
-                                name="Github_Link"
-                                value={editedPost.Github_Link || ''}
-                                onChange={handleInputChange}
-                                placeholder="Github Link"
-                                required
-                                fullWidth
-                                sx={{ 
-                                    padding: '10px', 
-                                    backgroundColor: '#374151', 
-                                    borderRadius: '4px',
-                                    color: '#E5E7EB',
-                                    '&:hover': {
-                                        backgroundColor: '#4B5563'
-                                    },
-                                    '&:focus': {
-                                        backgroundColor: '#4B5563',
-                                        boxShadow: '0 0 0 2px #8B5CF6'
-                                    }
-                                }}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Input
-                                name="Live_Link"
-                                value={editedPost.Live_Link || ''}
-                                onChange={handleInputChange}
-                                placeholder="Live Link"
-                                required
-                                fullWidth
-                                sx={{ 
-                                    padding: '10px', 
-                                    backgroundColor: '#374151', 
-                                    borderRadius: '4px',
-                                    color: '#E5E7EB',
-                                    '&:hover': {
-                                        backgroundColor: '#4B5563'
-                                    },
-                                    '&:focus': {
-                                        backgroundColor: '#4B5563',
-                                        boxShadow: '0 0 0 2px #8B5CF6'
-                                    }
-                                }}
-                            />
-                        </div>
-                    </div>
+                    ) : (
+                        <p>No comments available.</p>
+                    )}
                 </DialogContent>
-                <DialogActions sx={{ padding: '16px 24px', backgroundColor: '#111827' }}>
-                    <Button onClick={handleCloseModal} variant="outline" className="bg-gray-700 text-white hover:bg-gray-600">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSaveChanges} variant="outline" className="bg-purple-700 text-white hover:bg-purple-600">
-                        Save
+                <DialogActions
+                    sx={{
+                        padding: '16px 24px',
+                        backgroundColor: '#111827', // Matching the dialog header background
+                        color: '#E5E7EB', // Light text color
+                    }}
+                >
+                    <Button
+                        onClick={() => setCommentsModalOpen(false)}
+                        className="bg-purple-600 text-gray-100 hover:bg-purple-700"
+                    >
+                        Close
                     </Button>
                 </DialogActions>
             </Dialog>
