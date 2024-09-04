@@ -41,8 +41,10 @@ export default function LandingPage() {
   }, []);
 
   const handleScroll = () => {
-    const firstSection = document.querySelector("section");
     const sections = document.querySelectorAll("section");
+
+    // Detect if the user is on Safari
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -56,8 +58,8 @@ export default function LandingPage() {
       },
       {
         root: null,
-        rootMargin: "15% 0px -95% 0px",
-        threshold: 0.2,
+        rootMargin: isSafari ? "0% 0px -50% 0px" : "15% 0px -95% 0px", // Safari vs Chrome settings
+        threshold: isSafari ? 0.01 : 0.2, // Safari vs Chrome settings
       }
     );
 
@@ -69,7 +71,7 @@ export default function LandingPage() {
   const scrollToSection = (sectionId: string) => {
     const section = document.getElementById(sectionId);
     if (section) {
-      const offset = 50; // Adjust this value to control how much higher you want the scroll to stop
+      const offset = 50; // Adjust this value if needed
       const targetPosition =
         section.getBoundingClientRect().top + window.pageYOffset - offset;
       const startPosition = window.pageYOffset;
@@ -103,6 +105,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
