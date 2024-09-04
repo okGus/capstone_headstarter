@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ReactPlayer from "react-player";
 import {
   Card,
   CardContent,
@@ -326,8 +327,7 @@ export default function LandingPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.8, delay: 0.4 }}
                     >
-                      Share your work, find collaborators, and bring your ideas
-                      to life. Join our community of creators and innovators.
+                      Share your work, find collaborators, and bring your ideas to life. Join our community of developers and innovators to collaborate on cutting-edge projects and discover exciting opportunities.
                     </motion.p>
                     <motion.div
                       className="space-x-4"
@@ -353,12 +353,97 @@ export default function LandingPage() {
               </motion.section>
 
               <motion.section
+                key="demo-video"
+                id="demo-video"
+                className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
+                variants={sectionVariants}
+                initial="hidden"
+                animate={currentSection === 1 ? "visible" : "exit"}
+              >
+                <div className="container px-4 md:px-6">
+                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
+                    Watch Our Demo
+                  </h2>
+                  <motion.div
+                    className="flex justify-center"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                  >
+                    <ReactPlayer
+                      url="https://www.youtube.com/embed/4xK9Hcqy31k?si=89N4llQfI6XU0G7G"
+                      controls
+                      width="75%"
+                      height="480px"
+                    />
+                  </motion.div>
+                </div>
+              </motion.section>
+
+              <motion.section
+                key="how-it-works"
+                id="how-it-works"
+                className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
+                variants={sectionVariants}
+                initial="hidden"
+                animate={currentSection === 2 ? "visible" : "exit"}
+              >
+                <div className="container px-4 md:px-6" ref={targetSectionRef}>
+                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8 text-white">
+                    How It Works
+                  </h2>
+                  <p className="text-xl text-gray-400 mt-4 text-center">At DevConnect, we simplify the process of showcasing your projects and finding collaborators.</p>
+                  <motion.div
+                    className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ staggerChildren: 0.2 }}
+                  >
+                    {[
+                      {
+                        icon: FileIcon,
+                        title: "1. Post Your Project",
+                        description:
+                          "Share your work and ideas with our community",
+                      },
+                      {
+                        icon: UsersIcon,
+                        title: "2. Find Collaborators",
+                        description:
+                          "Connect with others who share your vision.",
+                      },
+                      {
+                        icon: RocketIcon,
+                        title: "3. Bring Ideas to Life",
+                        description:
+                          "Collaborate to create innovative solutions.",
+                      },
+                    ].map((step, index) => (
+                      <motion.div
+                        key={index}
+                        className="flex flex-col items-center text-center"
+                        variants={sectionVariants}
+                      >
+                        <div className="mb-4 rounded-full bg-gray-700 p-4">
+                          <step.icon className="h-6 w-6 text-purple-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-purple-500">
+                          {step.title}
+                        </h3>
+                        <p className="text-gray-300">{step.description}</p>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              </motion.section>
+
+              <motion.section
                 key="featured-projects"
                 id="featured-projects"
                 className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
                 variants={sectionVariants}
                 initial="hidden"
-                animate={currentSection === 1 ? "visible" : "exit"}
+                animate={currentSection === 3 ? "visible" : "exit"}
               >
                 <div className="container px-4 md:px-6">
                   <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
@@ -428,61 +513,17 @@ export default function LandingPage() {
                 </div>
               </motion.section>
 
-              <motion.section
-                key="how-it-works"
-                id="how-it-works"
-                className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
-                variants={sectionVariants}
-                initial="hidden"
-                animate={currentSection === 2 ? "visible" : "exit"}
-              >
-                <div className="container px-4 md:px-6" ref={targetSectionRef}>
-                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8 text-white">
-                    How It Works
-                  </h2>
-                  <motion.div
-                    className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ staggerChildren: 0.2 }}
-                  >
-                    {[
-                      {
-                        icon: FileIcon,
-                        title: "1. Post Your Project",
-                        description:
-                          "Share your work and ideas with our community",
-                      },
-                      {
-                        icon: UsersIcon,
-                        title: "2. Connect with Others",
-                        description:
-                          "Find like-minded individuals and potential collaborators",
-                      },
-                      {
-                        icon: RocketIcon,
-                        title: "3. Bring Ideas to Life",
-                        description:
-                          "Collaborate and turn your projects into reality",
-                      },
-                    ].map((step, index) => (
-                      <motion.div
-                        key={index}
-                        className="flex flex-col items-center text-center"
-                        variants={sectionVariants}
-                      >
-                        <div className="mb-4 rounded-full bg-gray-700 p-4">
-                          <step.icon className="h-6 w-6 text-purple-500" />
-                        </div>
-                        <h3 className="text-xl font-bold text-purple-500">
-                          {step.title}
-                        </h3>
-                        <p className="text-gray-300">{step.description}</p>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                </div>
-              </motion.section>
+              <motion.section className="w-full py-24 bg-gray-900 text-white">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold">Frequently Asked Questions</h2>
+                <p className="text-xl text-gray-400 mt-4">Got questions? We have answers!</p>
+              </div>
+              <div className="max-w-4xl mx-auto">
+                <FAQItem question="What is DevConnect?" answer="DevConnect is a platform for developers to showcase their projects, collaborate with others, and discover cool new projects." />
+                <FAQItem question="How can I join the platform?" answer="Sign up using the form on this page, and you'll be able to start posting your projects and finding collaborators." />
+                <FAQItem question="Is DevConnect free?" answer="Yes, DevConnect is free to use for all developers." />
+              </div>
+            </motion.section>
 
               <Separator className="my-4 bg-black" />
 
@@ -492,7 +533,7 @@ export default function LandingPage() {
                 className="w-full py-12 md:py-24 lg:py-32 bg-black"
                 variants={sectionVariants}
                 initial="hidden"
-                animate={currentSection === 3 ? "visible" : "exit"}
+                animate={currentSection === 4 ? "visible" : "exit"}
               >
                 <div className="container px-4 md:px-6">
                   <div className="flex flex-col items-center space-y-4 text-center">
@@ -629,6 +670,13 @@ function UsersIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+const FAQItem = ({ question, answer }: any) => (
+  <div className="mb-6">
+    <h4 className="text-xl font-bold text-purple-500">{question}</h4>
+    <p className="text-gray-400 mt-2">{answer}</p>
+  </div>
+);
 
 function RocketIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
   return (
