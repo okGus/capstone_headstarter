@@ -41,8 +41,10 @@ export default function LandingPage() {
   }, []);
 
   const handleScroll = () => {
-    const firstSection = document.querySelector("section");
     const sections = document.querySelectorAll("section");
+
+    // Detect if the user is on Safari
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -56,8 +58,8 @@ export default function LandingPage() {
       },
       {
         root: null,
-        rootMargin: "0px 0px -50% 0px",
-        threshold: [0, 0.1, 0.5, 1.0],
+        rootMargin: isSafari ? "0% 0px -50% 0px" : "15% 0px -95% 0px", // Safari vs Chrome settings
+        threshold: isSafari ? 0.01 : 0.2, // Safari vs Chrome settings
       }
     );
 
@@ -69,7 +71,7 @@ export default function LandingPage() {
   const scrollToSection = (sectionId: string) => {
     const section = document.getElementById(sectionId);
     if (section) {
-      const offset = 50; // Adjust this value to control how much higher you want the scroll to stop
+      const offset = 50; // Adjust this value if needed
       const targetPosition =
         section.getBoundingClientRect().top + window.pageYOffset - offset;
       const startPosition = window.pageYOffset;
@@ -103,6 +105,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -233,246 +236,265 @@ export default function LandingPage() {
             />
           </svg>
 
-        <header className="px-4 lg:px-6 h-14 flex items-center fixed w-full bg-black bg-opacity-90 backdrop-filter backdrop-blur-lg z-40">
-          <Link className="flex items-center justify-center" href="#">
-            <MountainIcon className="h-6 w-6 text-purple-900" />
-            <span className="text-xl font-bold text-purple-500 ml-2">DevConnect</span>
-            <span className="sr-only">Project Showcase</span>
-          </Link>
-          <nav className="ml-auto flex gap-2 sm:gap-1">
-            <Button
-              variant="ghost"
-              onClick={() => scrollToSection("featured-projects")}
-              className="text-white hover:text-purple-500"
-            >
-              Projects
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => scrollToSection("how-it-works")}
-              className="text-white hover:text-purple-500"
-            >
-              About
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => scrollToSection("join-waitlist")}
-              className="text-white hover:text-purple-500"
-            >
-              Join Waitlist
-            </Button>
-            <Button
-              variant="ghost"
-              className="text-sm font-medium text-white hover:text-purple-500"
-            >
-              Contact
-            </Button>
-          </nav>
-          <div className="flex items-center gap-4 ml-4">
-            <Link href="/sign-in">
-              <Button
-                size="sm"
-                className="bg-purple-700 text-white hover:bg-purple-900"
-              >
-                Sign In
-              </Button>
+          <header className="px-4 lg:px-6 h-14 flex items-center fixed w-full bg-black bg-opacity-90 backdrop-filter backdrop-blur-lg z-40">
+            <Link className="flex items-center justify-center" href="#">
+              <MountainIcon className="h-6 w-6 text-purple-900" />
+              <span className="text-xl font-bold text-purple-500 ml-2">
+                DevConnect
+              </span>
+              <span className="sr-only">Project Showcase</span>
             </Link>
-            <Link href="/sign-up">
+            <nav className="ml-auto flex gap-2 sm:gap-1">
               <Button
-                size="sm"
-                className="bg-purple-700 text-white hover:bg-purple-900"
+                variant="ghost"
+                onClick={() => scrollToSection("featured-projects")}
+                className="text-white hover:text-purple-500"
               >
-                Sign Up
+                Projects
               </Button>
-            </Link>
-          </div>
-        </header>
+              <Button
+                variant="ghost"
+                onClick={() => scrollToSection("how-it-works")}
+                className="text-white hover:text-purple-500"
+              >
+                About
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => scrollToSection("join-waitlist")}
+                className="text-white hover:text-purple-500"
+              >
+                Join Waitlist
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-sm font-medium text-white hover:text-purple-500"
+              >
+                Contact
+              </Button>
+            </nav>
+            <div className="flex items-center gap-4 ml-4">
+              <Link href="/sign-in">
+                <Button
+                  size="sm"
+                  className="bg-purple-700 text-white hover:bg-purple-900"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button
+                  size="sm"
+                  className="bg-purple-700 text-white hover:bg-purple-900"
+                >
+                  Sign Up
+                </Button>
+              </Link>
+            </div>
+          </header>
           <main className="flex-1 pt-14 bg-black">
             <AnimatePresence>
-            <motion.section
-              key="hero"
-              className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-black text-white"
-              variants={sectionVariants}
-              initial="hidden"
-              animate={currentSection === 0 ? "visible" : "exit"}
-            >
-              <div className="container px-4 md:px-6">
-                <div className="flex flex-col items-center space-y-4 text-center pt-12">
-                  <motion.h1
-                    className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  >
-                    Showcase Your Projects, Connect with Collaborators
-                  </motion.h1>
-                  <motion.p
-                    className="mx-auto max-w-[700px] text-gray-400 md:text-xl"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                  >
-                    Share your work, find collaborators, and bring your ideas to life. Join our community of creators and innovators.
-                  </motion.p>
-                  <motion.div
-                    className="space-x-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                  >
-                    <Button className="bg-purple-700 text-white hover:bg-purple-900">Get Started</Button>
-                    <Button
-                      variant="outline"
-                      className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
+              <motion.section
+                key="hero"
+                className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-black text-white"
+                variants={sectionVariants}
+                initial="hidden"
+                animate={currentSection === 0 ? "visible" : "exit"}
+              >
+                <div className="container px-4 md:px-6">
+                  <div className="flex flex-col items-center space-y-4 text-center pt-12">
+                    <motion.h1
+                      className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
                     >
-                      Learn More
-                    </Button>
+                      Showcase Your Projects, Connect with Collaborators
+                    </motion.h1>
+                    <motion.p
+                      className="mx-auto max-w-[700px] text-gray-400 md:text-xl"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.4 }}
+                    >
+                      Share your work, find collaborators, and bring your ideas
+                      to life. Join our community of creators and innovators.
+                    </motion.p>
+                    <motion.div
+                      className="space-x-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.6 }}
+                    >
+                      <Button className="bg-purple-700 text-white hover:bg-purple-900">
+                        Get Started
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
+                      >
+                        Learn More
+                      </Button>
+                    </motion.div>
+                  </div>
+                </div>
+              </motion.section>
+
+              <motion.section
+                key="featured-projects"
+                id="featured-projects"
+                className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
+                variants={sectionVariants}
+                initial="hidden"
+                animate={currentSection === 1 ? "visible" : "exit"}
+              >
+                <div className="container px-4 md:px-6">
+                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
+                    Featured Projects
+                  </h2>
+                  <motion.div
+                    className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ staggerChildren: 0.2 }}
+                  >
+                    <motion.div variants={sectionVariants}>
+                      <Card className="bg-gray-800 border border-gray-700">
+                        <CardHeader>
+                          <CardTitle className="text-purple-500">
+                            Eco-friendly Smart Home
+                          </CardTitle>
+                          <CardDescription className="text-gray-400">
+                            A sustainable living project
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-white">
+                            Innovative smart home solutions focusing on energy
+                            efficiency and sustainability.
+                          </p>
+                        </CardContent>
+                        <CardFooter>
+                          <Button
+                            variant="outline"
+                            className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
+                          >
+                            View Project
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                    <motion.div variants={sectionVariants}>
+                      <Card className="bg-gray-800 border border-gray-700">
+                        <CardHeader>
+                          <CardTitle className="text-purple-500">
+                            AI-powered Education Platform
+                          </CardTitle>
+                          <CardDescription className="text-gray-400">
+                            Revolutionizing online learning
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-white">
+                            An adaptive learning platform that uses AI to
+                            personalize education for each student.
+                          </p>
+                        </CardContent>
+                        <CardFooter>
+                          <Button
+                            variant="outline"
+                            className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
+                          >
+                            View Project
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                    <motion.div variants={sectionVariants}>
+                      <Card className="bg-gray-800 border border-gray-700">
+                        <CardHeader>
+                          <CardTitle className="text-purple-500">
+                            Community Marketplace App
+                          </CardTitle>
+                          <CardDescription className="text-gray-400">
+                            Connecting local businesses and consumers
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-white">
+                            A mobile app that promotes local commerce and
+                            strengthens community bonds.
+                          </p>
+                        </CardContent>
+                        <CardFooter>
+                          <Button
+                            variant="outline"
+                            className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
+                          >
+                            View Project
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
                   </motion.div>
                 </div>
-              </div>
-            </motion.section>
+              </motion.section>
 
-            <motion.section
-              key="featured-projects"
-              id="featured-projects"
-              className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
-              variants={sectionVariants}
-              initial="hidden"
-              animate={currentSection === 1 ? "visible" : "exit"}
-            >
-              <div className="container px-4 md:px-6">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8">
-                  Featured Projects
-                </h2>
-                <motion.div
-                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ staggerChildren: 0.2 }}
-                >
-                  <motion.div variants={sectionVariants}>
-                    <Card className="bg-gray-800 border border-gray-700">
-                      <CardHeader>
-                        <CardTitle className="text-purple-500">Eco-friendly Smart Home</CardTitle>
-                        <CardDescription className="text-gray-400">
-                          A sustainable living project
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-white">
-                          Innovative smart home solutions focusing on energy efficiency and sustainability.
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button
-                          variant="outline"
-                          className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
-                        >
-                          View Project
-                        </Button>
-                      </CardFooter>
-                    </Card>
+              <motion.section
+                key="how-it-works"
+                id="how-it-works"
+                className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
+                variants={sectionVariants}
+                initial="hidden"
+                animate={currentSection === 2 ? "visible" : "exit"}
+              >
+                <div className="container px-4 md:px-6">
+                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8 text-white">
+                    How It Works
+                  </h2>
+                  <motion.div
+                    className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ staggerChildren: 0.2 }}
+                  >
+                    {[
+                      {
+                        icon: FileIcon,
+                        title: "1. Post Your Project",
+                        description:
+                          "Share your work and ideas with our community",
+                      },
+                      {
+                        icon: UsersIcon,
+                        title: "2. Connect with Others",
+                        description:
+                          "Find like-minded individuals and potential collaborators",
+                      },
+                      {
+                        icon: RocketIcon,
+                        title: "3. Bring Ideas to Life",
+                        description:
+                          "Collaborate and turn your projects into reality",
+                      },
+                    ].map((step, index) => (
+                      <motion.div
+                        key={index}
+                        className="flex flex-col items-center text-center"
+                        variants={sectionVariants}
+                      >
+                        <div className="mb-4 rounded-full bg-gray-700 p-4">
+                          <step.icon className="h-6 w-6 text-purple-900" />
+                        </div>
+                        <h3 className="text-xl font-bold text-purple-900">
+                          {step.title}
+                        </h3>
+                        <p className="text-gray-300">{step.description}</p>
+                      </motion.div>
+                    ))}
                   </motion.div>
-                  <motion.div variants={sectionVariants}>
-                    <Card className="bg-gray-800 border border-gray-700">
-                      <CardHeader>
-                        <CardTitle className="text-purple-500">AI-powered Education Platform</CardTitle>
-                        <CardDescription className="text-gray-400">
-                          Revolutionizing online learning
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-white">
-                          An adaptive learning platform that uses AI to personalize education for each student.
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button
-                          variant="outline"
-                          className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
-                        >
-                          View Project
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                  <motion.div variants={sectionVariants}>
-                    <Card className="bg-gray-800 border border-gray-700">
-                      <CardHeader>
-                        <CardTitle className="text-purple-500">Community Marketplace App</CardTitle>
-                        <CardDescription className="text-gray-400">
-                          Connecting local businesses and consumers
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-white">
-                          A mobile app that promotes local commerce and strengthens community bonds.
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                        <Button
-                          variant="outline"
-                          className="border-purple-500 text-purple-500 hover:bg-purple-700 hover:text-white"
-                        >
-                          View Project
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                </motion.div>
-              </div>
-            </motion.section>
-
-            <motion.section
-              key="how-it-works"
-              id="how-it-works"
-              className="w-full py-12 md:py-24 lg:py-32 bg-black text-white"
-              variants={sectionVariants}
-              initial="hidden"
-              animate={currentSection === 2 ? "visible" : "exit"}
-            >
-              <div className="container px-4 md:px-6">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-center mb-8 text-white">
-                  How It Works
-                </h2>
-                <motion.div
-                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ staggerChildren: 0.2 }}
-                >
-                  {[
-                    {
-                      icon: FileIcon,
-                      title: "1. Post Your Project",
-                      description: "Share your work and ideas with our community",
-                    },
-                    {
-                      icon: UsersIcon,
-                      title: "2. Connect with Others",
-                      description: "Find like-minded individuals and potential collaborators",
-                    },
-                    {
-                      icon: RocketIcon,
-                      title: "3. Bring Ideas to Life",
-                      description: "Collaborate and turn your projects into reality",
-                    },
-                  ].map((step, index) => (
-                    <motion.div
-                      key={index}
-                      className="flex flex-col items-center text-center"
-                      variants={sectionVariants}
-                    >
-                      <div className="mb-4 rounded-full bg-gray-700 p-4">
-                        <step.icon className="h-6 w-6 text-purple-900" />
-                      </div>
-                      <h3 className="text-xl font-bold text-purple-900">{step.title}</h3>
-                      <p className="text-gray-300">{step.description}</p>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </div>
-            </motion.section>
+                </div>
+              </motion.section>
 
               <Separator className="my-4 bg-black" />
 
@@ -491,7 +513,8 @@ export default function LandingPage() {
                         Join the Waitlist
                       </h2>
                       <p className="mx-auto max-w-[600px] text-gray-400 md:text-xl">
-                        Be among the first to experience our platform. Sign up for early access and exclusive updates.
+                        Be among the first to experience our platform. Sign up
+                        for early access and exclusive updates.
                       </p>
                     </div>
                     <div className="w-full max-w-sm space-y-2">
@@ -513,13 +536,17 @@ export default function LandingPage() {
                           onChange={(e) => setEmail(e.target.value)}
                           className="bg-gray-800 text-white placeholder-gray-400"
                         />
-                        <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700">
+                        <Button
+                          type="submit"
+                          className="bg-purple-600 text-white hover:bg-purple-700"
+                        >
                           Join Waitlist
                         </Button>
                       </form>
                       {message && <p className="text-gray-300">{message}</p>}
                       <p className="text-xs text-gray-400">
-                        We respect your privacy and will never share your information.
+                        We respect your privacy and will never share your
+                        information.
                       </p>
                     </div>
                   </div>
