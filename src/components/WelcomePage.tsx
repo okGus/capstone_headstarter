@@ -491,7 +491,7 @@ export default function WelcomePage() {
                             </Card>
                         </TabsContent>
                         <TabsContent value="view">
-                            <div className="overflow-auto display-block overflow-scroll overflow-hidden w-full" style={{overflow: 'hidden'}}>
+                            <div className="overflow-auto display-block overflow-scroll w-full">
                             <ScrollArea className="overflow-auto w-full whitespace-nowrap h-[600px] rounded-md border border-gray-700 p-4 min-w-max bg-gray-800">
                                 <div className="space-y-8">
                                     {isLoading && (
