@@ -56,8 +56,8 @@ export default function LandingPage() {
       },
       {
         root: null,
-        rootMargin: "30% 0px -30% 0px",
-        threshold: 0.2,
+        rootMargin: "0px 0px -50% 0px",
+        threshold: [0, 0.1, 0.5, 1.0],
       }
     );
 
@@ -236,6 +236,7 @@ export default function LandingPage() {
         <header className="px-4 lg:px-6 h-14 flex items-center fixed w-full bg-black bg-opacity-90 backdrop-filter backdrop-blur-lg z-40">
           <Link className="flex items-center justify-center" href="#">
             <MountainIcon className="h-6 w-6 text-purple-900" />
+            <span className="text-xl font-bold text-purple-500 ml-2">DevConnect</span>
             <span className="sr-only">Project Showcase</span>
           </Link>
           <nav className="ml-auto flex gap-2 sm:gap-1">
@@ -358,7 +359,7 @@ export default function LandingPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <p>
+                        <p className="text-white">
                           Innovative smart home solutions focusing on energy efficiency and sustainability.
                         </p>
                       </CardContent>
@@ -381,7 +382,7 @@ export default function LandingPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <p>
+                        <p className="text-white">
                           An adaptive learning platform that uses AI to personalize education for each student.
                         </p>
                       </CardContent>
@@ -404,7 +405,7 @@ export default function LandingPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <p>
+                        <p className="text-white">
                           A mobile app that promotes local commerce and strengthens community bonds.
                         </p>
                       </CardContent>
@@ -462,11 +463,11 @@ export default function LandingPage() {
                       className="flex flex-col items-center text-center"
                       variants={sectionVariants}
                     >
-                      <div className="mb-4 rounded-full bg-gray-800 p-4">
+                      <div className="mb-4 rounded-full bg-gray-700 p-4">
                         <step.icon className="h-6 w-6 text-purple-500" />
                       </div>
                       <h3 className="text-xl font-bold text-purple-500">{step.title}</h3>
-                      <p className="text-gray-400">{step.description}</p>
+                      <p className="text-gray-300">{step.description}</p>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -563,7 +564,7 @@ function MountainIcon(
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="4"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
