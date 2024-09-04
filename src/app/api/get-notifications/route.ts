@@ -1,5 +1,5 @@
-// import redis from "@/lib/redis";
-import redis from "@/lib/redisdev";
+import redis from "@/lib/redis";
+// import redis from "@/lib/redisdev";
 
 import { NextRequest, NextResponse } from "next/server";
 
