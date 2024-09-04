@@ -464,9 +464,9 @@ export default function LandingPage() {
                       variants={sectionVariants}
                     >
                       <div className="mb-4 rounded-full bg-gray-700 p-4">
-                        <step.icon className="h-6 w-6 text-purple-500" />
+                        <step.icon className="h-6 w-6 text-purple-900" />
                       </div>
-                      <h3 className="text-xl font-bold text-purple-500">{step.title}</h3>
+                      <h3 className="text-xl font-bold text-purple-900">{step.title}</h3>
                       <p className="text-gray-300">{step.description}</p>
                     </motion.div>
                   ))}
