@@ -59,9 +59,9 @@ export default function LandingPage() {
       },
       {
         root: null,
-        rootMargin: isSafari ? "0% 0px -50% 0px" : "0px 0px -50% 0px", // Safari vs Chrome settings
-        threshold: isSafari ? 0.01 : [0, 0.1, 0.5, 1.0], // Safari vs Chrome settings
-      }
+        rootMargin: isSafari ? "0% 0px -30% 0px" : "0px 0px -30% 0px", // Increased window size
+        threshold: isSafari ? 0.05 : [0, 0.2, 0.6, 1.0], // Slightly adjusted thresholds for larger range
+      }      
       
     );
 
@@ -513,7 +513,13 @@ export default function LandingPage() {
                 </div>
               </motion.section>
 
-              <motion.section className="w-full py-24 bg-gray-900 text-white">
+              <motion.section className="w-full py-24 bg-black text-white"
+              key="faq"
+              id="faq"
+              initial="hidden"
+              variants={sectionVariants}
+              animate={currentSection === 4 ? "visible" : "exit"}>
+                
               <div className="text-center mb-12">
                 <h2 className="text-4xl font-bold">Frequently Asked Questions</h2>
                 <p className="text-xl text-gray-400 mt-4">Got questions? We have answers!</p>
@@ -533,7 +539,7 @@ export default function LandingPage() {
                 className="w-full py-12 md:py-24 lg:py-32 bg-black"
                 variants={sectionVariants}
                 initial="hidden"
-                animate={currentSection === 4 ? "visible" : "exit"}
+                animate={currentSection === 5 ? "visible" : "exit"}
               >
                 <div className="container px-4 md:px-6">
                   <div className="flex flex-col items-center space-y-4 text-center">
